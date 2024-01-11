@@ -27,9 +27,8 @@ from ethereumetl.utils import hex_to_dec
 
 class EthReceiptLogMapper(object):
 
-    def json_dict_to_receipt_log(self, json_dict):
+    def json_dict_to_receipt_log(self, json_dict, tx_from, tx_to):
         receipt_log = EthReceiptLog()
-
         receipt_log.log_index = hex_to_dec(json_dict.get('logIndex'))
         receipt_log.transaction_hash = json_dict.get('transactionHash')
         receipt_log.transaction_index = hex_to_dec(json_dict.get('transactionIndex'))
@@ -38,6 +37,8 @@ class EthReceiptLogMapper(object):
         receipt_log.address = json_dict.get('address')
         receipt_log.data = json_dict.get('data')
         receipt_log.topics = json_dict.get('topics')
+        receipt_log.tx_from = tx_from
+        receipt_log.tx_to = tx_to
 
         return receipt_log
 
@@ -67,6 +68,7 @@ class EthReceiptLogMapper(object):
         return receipt_log
 
     def receipt_log_to_dict(self, receipt_log):
+        topics_length = len(receipt_log.topics)
         return {
             'type': 'log',
             'log_index': receipt_log.log_index,
@@ -76,6 +78,12 @@ class EthReceiptLogMapper(object):
             'block_number': receipt_log.block_number,
             'address': receipt_log.address,
             'data': receipt_log.data,
+            'topic0': receipt_log.topics[0] if topics_length > 0 else '',
+            'topic1': receipt_log.topics[1] if topics_length > 1 else '',
+            'topic2': receipt_log.topics[2] if topics_length > 2 else '',
+            'topic3': receipt_log.topics[3] if topics_length > 3 else '',
+            'tx_from': receipt_log.tx_from,
+            'tx_to': receipt_log.tx_to,
             'topics': receipt_log.topics
         }
 

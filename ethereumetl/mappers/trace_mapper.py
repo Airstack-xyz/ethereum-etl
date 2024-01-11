@@ -126,7 +126,8 @@ class EthTraceMapper(object):
 
     def _iterate_transaction_trace(self, block_number, tx_index, tx_trace, trace_address=[]):
         trace = EthTrace()
-
+        trace.transaction_hash = tx_trace.get('tx_hash')
+        trace.status = tx_trace.get('status')
         trace.block_number = block_number
         trace.transaction_index = tx_index
 
@@ -140,8 +141,6 @@ class EthTraceMapper(object):
         trace.gas = hex_to_dec(tx_trace.get('gas'))
         trace.gas_used = hex_to_dec(tx_trace.get('gasUsed'))
 
-        trace.error = tx_trace.get('error')
-
         # lowercase for compatibility with parity traces
         trace.trace_type = tx_trace.get('type').lower()
 
@@ -153,8 +152,11 @@ class EthTraceMapper(object):
             trace.trace_type = 'call'
 
         result = [trace]
-
         calls = tx_trace.get('calls', [])
+        for obj in calls:
+            obj['tx_hash'] = tx_trace.get('tx_hash')
+            obj['status'] = tx_trace.get('status')
+           
 
         trace.subtraces = len(calls)
         trace.trace_address = trace_address
@@ -169,9 +171,9 @@ class EthTraceMapper(object):
 
         return result
 
-    def trace_to_dict(self, trace):
+    def trace_to_dict(self, trace, trace_type):
         return {
-            'type': 'trace',
+            'type': trace_type,
             'block_number': trace.block_number,
             'transaction_hash': trace.transaction_hash,
             'transaction_index': trace.transaction_index,

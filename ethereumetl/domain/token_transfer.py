@@ -30,3 +30,10 @@ class EthTokenTransfer(object):
         self.transaction_hash = None
         self.log_index = None
         self.block_number = None
+        self.token_id = None
+        self.operator = None
+        self.transaction_index = None
+        self.transfer_type = None
+        self.token_standard = None
+        self.token_ids = []
+        self.values = []

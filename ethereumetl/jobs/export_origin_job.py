@@ -5,6 +5,7 @@ from ethereumetl.utils import validate_range
 from ethereumetl.mappers.receipt_log_mapper import EthReceiptLogMapper
 from ethereumetl.mappers.origin_mapper import OriginMarketplaceListingMapper, OriginShopProductMapper
 from ethereumetl.service.origin_extractor import OriginEventExtractor
+from ethereumetl.enumeration.entity_type import EntityType
 
 
 # Addresses of the marketplace contracts.
@@ -36,7 +37,7 @@ class ExportOriginJob(BaseJob):
         self.marketplace_listing_exporter = marketplace_listing_exporter
         self.shop_product_exporter = shop_product_exporter
 
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers, "ORIGIN")
 
         self.event_extractor = OriginEventExtractor(ipfs_client)
 

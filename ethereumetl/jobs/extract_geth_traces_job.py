@@ -24,6 +24,7 @@ from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.mappers.trace_mapper import EthTraceMapper
 from ethereumetl.mappers.geth_trace_mapper import EthGethTraceMapper
+from ethereumetl.enumeration.entity_type import EntityType
 
 
 class ExtractGethTracesJob(BaseJob):
@@ -35,7 +36,7 @@ class ExtractGethTracesJob(BaseJob):
             item_exporter):
         self.traces_iterable = traces_iterable
 
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers, EntityType.GETH_TRACE)
         self.item_exporter = item_exporter
 
         self.trace_mapper = EthTraceMapper()
@@ -52,7 +53,7 @@ class ExtractGethTracesJob(BaseJob):
             geth_trace = self.geth_trace_mapper.json_dict_to_geth_trace(geth_trace_dict)
             traces = self.trace_mapper.geth_trace_to_traces(geth_trace)
             for trace in traces:
-                self.item_exporter.export_item(self.trace_mapper.trace_to_dict(trace))
+                self.item_exporter.export_item(self.trace_mapper.trace_to_dict(trace, EntityType.GETH_TRACE))
               
     def _end(self):
         self.batch_work_executor.shutdown()

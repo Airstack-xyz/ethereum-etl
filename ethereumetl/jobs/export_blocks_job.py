@@ -29,6 +29,7 @@ from ethereumetl.json_rpc_requests import generate_get_block_by_number_json_rpc
 from ethereumetl.mappers.block_mapper import EthBlockMapper
 from ethereumetl.mappers.transaction_mapper import EthTransactionMapper
 from ethereumetl.utils import rpc_response_batch_to_results, validate_range
+from ethereumetl.enumeration.entity_type import EntityType
 
 
 # Exports blocks and transactions
@@ -49,7 +50,7 @@ class ExportBlocksJob(BaseJob):
 
         self.batch_web3_provider = batch_web3_provider
 
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers, EntityType.BLOCK)
         self.item_exporter = item_exporter
 
         self.export_blocks = export_blocks

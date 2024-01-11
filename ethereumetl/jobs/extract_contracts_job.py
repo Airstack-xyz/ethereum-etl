@@ -28,6 +28,7 @@ from ethereumetl.mappers.contract_mapper import EthContractMapper
 
 from ethereumetl.service.eth_contract_service import EthContractService
 from ethereumetl.utils import to_int_or_none
+from ethereumetl.enumeration.entity_type import EntityType
 
 
 # Extract contracts
@@ -40,7 +41,7 @@ class ExtractContractsJob(BaseJob):
             item_exporter):
         self.traces_iterable = traces_iterable
 
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers, EntityType.CONTRACT)
         self.item_exporter = item_exporter
 
         self.contract_service = EthContractService()

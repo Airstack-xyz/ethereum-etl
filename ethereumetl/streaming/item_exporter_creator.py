@@ -20,12 +20,16 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
+import os
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.multi_item_exporter import MultiItemExporter
 
 
 def create_item_exporters(outputs):
-    split_outputs = [output.strip() for output in outputs.split(',')] if outputs else ['console']
+    if outputs is not None and not outputs.startswith('kafka'):
+        split_outputs = [output.strip() for output in outputs.split(',')] if outputs else ['console']
+    else:
+        split_outputs = [outputs]
 
     item_exporters = [create_item_exporter(output) for output in split_outputs]
     return MultiItemExporter(item_exporters)
@@ -84,14 +88,16 @@ def create_item_exporter(output):
         item_exporter = ConsoleItemExporter()
     elif item_exporter_type == ItemExporterType.KAFKA:
         from blockchainetl.jobs.exporters.kafka_exporter import KafkaItemExporter
+        blockchain = os.environ['BLOCKCHAIN']
         item_exporter = KafkaItemExporter(output, item_type_to_topic_mapping={
-            'block': 'blocks',
-            'transaction': 'transactions',
-            'log': 'logs',
-            'token_transfer': 'token_transfers',
-            'trace': 'traces',
-            'contract': 'contracts',
-            'token': 'tokens',
+            'block': blockchain + '_blocks',
+            'transaction': blockchain + '_transactions',
+            'log': blockchain + '_logs',
+            'token_transfer': blockchain + '_token_transfers',
+            'trace': blockchain + '_traces',
+            'geth_trace': blockchain + '_traces',
+            'contract': blockchain + '_contracts',
+            'token': blockchain + '_tokens',
         })
 
     else:

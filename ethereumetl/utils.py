@@ -25,7 +25,7 @@ import itertools
 import warnings
 
 from ethereumetl.misc.retriable_value_error import RetriableValueError
-
+from typing import List, Union
 
 def hex_to_dec(hex_string):
     if hex_string is None:
@@ -36,6 +36,19 @@ def hex_to_dec(hex_string):
         print("Not a hex string %s" % hex_string)
         return hex_string
 
+def hex_strings_to_dec(hex_strings):
+    if hex_strings is None:
+        return None
+    
+    converted_values = []
+    for hex_string in hex_strings:
+        try:
+            converted_values.append(int(hex_string, 16))
+        except ValueError:
+            print(f"Not a hex string: {hex_string}")
+            converted_values.append(hex_string)
+    
+    return converted_values
 
 def to_int_or_none(val):
     if isinstance(val, int):

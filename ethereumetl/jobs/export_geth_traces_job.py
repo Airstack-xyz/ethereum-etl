@@ -27,6 +27,7 @@ from ethereumetl.json_rpc_requests import generate_trace_block_by_number_json_rp
 from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.mappers.geth_trace_mapper import EthGethTraceMapper
 from ethereumetl.utils import validate_range, rpc_response_to_result
+from ethereumetl.enumeration.entity_type import EntityType
 
 
 # Exports geth traces
@@ -45,7 +46,7 @@ class ExportGethTracesJob(BaseJob):
 
         self.batch_web3_provider = batch_web3_provider
 
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers, EntityType.GETH_TRACE)
         self.item_exporter = item_exporter
 
         self.geth_trace_mapper = EthGethTraceMapper()
@@ -67,7 +68,16 @@ class ExportGethTracesJob(BaseJob):
         for response_item in response:
             block_number = response_item.get('id')
             result = rpc_response_to_result(response_item)
-
+            
+            # add tx_hash to tx_trace
+            for obj in result:
+                obj['result']['tx_hash'] = obj.get('txHash')
+                trace_error = obj.get('result').get('error')
+                if trace_error is not None:
+                    obj['result']['status'] = 0
+                else:
+                    obj['result']['status'] = 1
+    
             geth_trace = self.geth_trace_mapper.json_dict_to_geth_trace({
                 'block_number': block_number,
                 'transaction_traces': [tx_trace.get('result') for tx_trace in result],

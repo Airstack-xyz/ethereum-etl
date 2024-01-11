@@ -26,6 +26,7 @@ from ethereumetl.mappers.token_transfer_mapper import EthTokenTransferMapper
 from ethereumetl.mappers.receipt_log_mapper import EthReceiptLogMapper
 from ethereumetl.service.token_transfer_extractor import EthTokenTransferExtractor, TRANSFER_EVENT_TOPIC
 from ethereumetl.utils import validate_range
+from ethereumetl.enumeration.entity_type import EntityType
 
 
 class ExportTokenTransfersJob(BaseJob):
@@ -46,7 +47,7 @@ class ExportTokenTransfersJob(BaseJob):
         self.tokens = tokens
         self.item_exporter = item_exporter
 
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers, EntityType.TOKEN_TRANSFER)
 
         self.receipt_log_mapper = EthReceiptLogMapper()
         self.token_transfer_mapper = EthTokenTransferMapper()

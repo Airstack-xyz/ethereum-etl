@@ -29,6 +29,7 @@ from ethereumetl.json_rpc_requests import generate_get_receipt_json_rpc
 from ethereumetl.mappers.receipt_log_mapper import EthReceiptLogMapper
 from ethereumetl.mappers.receipt_mapper import EthReceiptMapper
 from ethereumetl.utils import rpc_response_batch_to_results
+from ethereumetl.enumeration.entity_type import EntityType
 
 
 # Exports receipts and logs
@@ -45,7 +46,7 @@ class ExportReceiptsJob(BaseJob):
         self.batch_web3_provider = batch_web3_provider
         self.transaction_hashes_iterable = transaction_hashes_iterable
 
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers, EntityType.RECEIPT)
         self.item_exporter = item_exporter
 
         self.export_receipts = export_receipts

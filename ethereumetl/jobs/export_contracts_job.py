@@ -30,6 +30,7 @@ from ethereumetl.mappers.contract_mapper import EthContractMapper
 
 from ethereumetl.service.eth_contract_service import EthContractService
 from ethereumetl.utils import rpc_response_to_result
+from ethereumetl.enumeration.entity_type import EntityType
 
 
 # Exports contracts bytecode
@@ -44,7 +45,7 @@ class ExportContractsJob(BaseJob):
         self.batch_web3_provider = batch_web3_provider
         self.contract_addresses_iterable = contract_addresses_iterable
 
-        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(batch_size, max_workers, EntityType.CONTRACT)
         self.item_exporter = item_exporter
 
         self.contract_service = EthContractService()

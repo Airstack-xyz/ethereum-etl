@@ -30,6 +30,7 @@ from ethereumetl.service.eth_special_trace_service import EthSpecialTraceService
 from ethereumetl.service.trace_id_calculator import calculate_trace_ids
 from ethereumetl.service.trace_status_calculator import calculate_trace_statuses
 from ethereumetl.utils import validate_range
+from ethereumetl.enumeration.entity_type import EntityType
 
 
 class ExportTracesJob(BaseJob):
@@ -50,7 +51,7 @@ class ExportTracesJob(BaseJob):
         self.web3 = web3
 
         # TODO: use batch_size when this issue is fixed https://github.com/paritytech/parity-ethereum/issues/9822
-        self.batch_work_executor = BatchWorkExecutor(1, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(1, max_workers, EntityType.TRACE)
         self.item_exporter = item_exporter
 
         self.trace_mapper = EthTraceMapper()
@@ -100,7 +101,7 @@ class ExportTracesJob(BaseJob):
         calculate_trace_indexes(all_traces)
 
         for trace in all_traces:
-            self.item_exporter.export_item(self.trace_mapper.trace_to_dict(trace))
+            self.item_exporter.export_item(self.trace_mapper.trace_to_dict(trace, EntityType.TRACE))
 
     def _end(self):
         self.batch_work_executor.shutdown()

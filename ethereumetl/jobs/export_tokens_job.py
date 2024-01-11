@@ -25,13 +25,14 @@ from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from blockchainetl.jobs.base_job import BaseJob
 from ethereumetl.mappers.token_mapper import EthTokenMapper
 from ethereumetl.service.eth_token_service import EthTokenService
+from ethereumetl.enumeration.entity_type import EntityType
 
 
 class ExportTokensJob(BaseJob):
     def __init__(self, web3, item_exporter, token_addresses_iterable, max_workers):
         self.item_exporter = item_exporter
         self.token_addresses_iterable = token_addresses_iterable
-        self.batch_work_executor = BatchWorkExecutor(1, max_workers)
+        self.batch_work_executor = BatchWorkExecutor(1, max_workers, EntityType.TOKEN)
 
         self.token_service = EthTokenService(web3, clean_user_provided_content)
         self.token_mapper = EthTokenMapper()
