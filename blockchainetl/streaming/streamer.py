@@ -24,6 +24,7 @@
 import logging
 import os
 import time
+from datetime import datetime
 
 from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
 from blockchainetl.file_utils import smart_open
@@ -72,9 +73,11 @@ class Streamer:
     def _do_stream(self):
         while True and (self.end_block is None or self.last_synced_block < self.end_block):
             synced_blocks = 0
-
             try:
+                current_time = datetime.now()
                 synced_blocks = self._sync_cycle()
+                elapsed_time = datetime.now() - current_time
+                logging.info('Synced {} blocks in {}'.format(synced_blocks, elapsed_time))
             except Exception as e:
                 # https://stackoverflow.com/a/4992124/1580227
                 logging.exception('An exception occurred while syncing block data.')
@@ -87,7 +90,6 @@ class Streamer:
 
     def _sync_cycle(self):
         current_block = self.blockchain_streamer_adapter.get_current_block_number()
-
         target_block = self._calculate_target_block(current_block, self.last_synced_block)
         blocks_to_sync = max(target_block - self.last_synced_block, 0)
 
