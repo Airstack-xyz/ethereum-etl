@@ -82,7 +82,7 @@ jobs:
         env:
           IMAGE_TAG: ${{ github.sha }}
           EVENT_NAME: ${{ github.event.inputs.environment }}-common-api-analytics-clickhouse
-          VALUES_FILE: core/common-values/api-analytics-clickhouse-values.yaml
+          VALUES_FILE: core/ethereum-values/ethereum-etl-values.yaml
         run: |
           curl -H "Accept: application/vnd.github.everest-preview+json" \
           -H "Authorization: token ${{ secrets.ACCESS_TOKEN_PWD }}" \
