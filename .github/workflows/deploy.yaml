@@ -81,7 +81,7 @@ jobs:
       - name: Repository Dispatch
         env:
           IMAGE_TAG: ${{ github.sha }}
-          EVENT_NAME: ${{ github.event.inputs.environment }}-common-api-analytics-clickhouse
+          EVENT_NAME: ${{ github.event.inputs.environment }}-ethereum-etl
           VALUES_FILE: core/ethereum-values/ethereum-etl-values.yaml
         run: |
           curl -H "Accept: application/vnd.github.everest-preview+json" \
