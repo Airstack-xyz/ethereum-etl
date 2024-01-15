@@ -27,11 +27,16 @@ from web3 import IPCProvider, HTTPProvider
 
 from ethereumetl.providers.ipc import BatchIPCProvider
 from ethereumetl.providers.rpc import BatchHTTPProvider
+import random
+import logging
 
 DEFAULT_TIMEOUT = 60
 
 
-def get_provider_from_uri(uri_string, timeout=DEFAULT_TIMEOUT, batch=False):
+def get_provider_from_uri(provider_uris, timeout=DEFAULT_TIMEOUT, batch=False):
+    provider_uris = [uri.strip() for uri in provider_uris.split(',')]
+    uri_string = random.choice(provider_uris)
+    logging.info('Using ' + uri_string)
     uri = urlparse(uri_string)
     if uri.scheme == 'file':
         if batch:
