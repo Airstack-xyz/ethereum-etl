@@ -40,7 +40,8 @@ setup(
         'ethereum-dasm==0.1.4',
         'urllib3<2',
         'base58',
-        'requests'
+        'requests',
+        'lz4'
     ],
     extras_require={
         'streaming': [
