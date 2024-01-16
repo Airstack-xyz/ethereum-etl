@@ -36,7 +36,7 @@ DEFAULT_TIMEOUT = 60
 def get_provider_from_uri(provider_uris, timeout=DEFAULT_TIMEOUT, batch=False):
     provider_uris = [uri.strip() for uri in provider_uris.split(',')]
     uri_string = random.choice(provider_uris)
-    logging.info('Using ' + uri_string)
+    #logging.info('Using ' + uri_string)
     uri = urlparse(uri_string)
     if uri.scheme == 'file':
         if batch:

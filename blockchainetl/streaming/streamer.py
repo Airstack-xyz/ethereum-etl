@@ -80,7 +80,7 @@ class Streamer:
                 logging.info('Synced {} blocks in {}'.format(synced_blocks, elapsed_time))
             except Exception as e:
                 # https://stackoverflow.com/a/4992124/1580227
-                logging.exception('An exception occurred while syncing block data.')
+                logging.exception('An exception occurred while syncing block data.', e)
                 if not self.retry_errors:
                     raise e
 
