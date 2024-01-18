@@ -95,7 +95,7 @@ def create_item_exporter(output):
             'log': blockchain + '_logs_live',
             'token_transfer': blockchain + '_token_transfers',
             'trace': blockchain + '_traces_live',
-            'geth_trace': blockchain + '_traces',
+            'geth_trace': blockchain + '_traces_live',
             'contract': blockchain + '_contracts',
             'token': blockchain + '_tokens',
         })
