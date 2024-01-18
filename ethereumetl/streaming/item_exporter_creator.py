@@ -92,9 +92,9 @@ def create_item_exporter(output):
         item_exporter = KafkaItemExporter(output, item_type_to_topic_mapping={
             'block': blockchain + '_blocks',
             'transaction': blockchain + '_transactions',
-            'log': blockchain + '_logs',
+            'log': blockchain + '_logs_live',
             'token_transfer': blockchain + '_token_transfers',
-            'trace': blockchain + '_traces',
+            'trace': blockchain + '_traces_live',
             'geth_trace': blockchain + '_traces',
             'contract': blockchain + '_contracts',
             'token': blockchain + '_tokens',
