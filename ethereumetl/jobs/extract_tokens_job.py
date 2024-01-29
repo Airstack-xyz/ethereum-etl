@@ -33,8 +33,8 @@ class ExtractTokensJob(ExportTokensJob):
         self.batch_work_executor.execute(self.contracts_iterable, self._export_tokens_from_contracts)
 
     def _export_tokens_from_contracts(self, contracts):
-        #tokens = [contract for contract in contracts if contract.get('is_erc20') or contract.get('  ')]
-        for token in contracts:
+        tokens = [contract for contract in contracts if contract.get('bytecode') is not None]  # filter out contracts without bytecode
+        for token in tokens :
             self._export_token(token_address=token['address'], block_number=token['block_number'])
 
 
