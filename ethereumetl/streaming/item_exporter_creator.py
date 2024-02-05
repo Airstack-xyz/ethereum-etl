@@ -93,7 +93,7 @@ def create_item_exporter(output):
             'block': blockchain + '_blocks',
             'transaction': blockchain + '_transactions',
             'log': blockchain + '_logs',
-            'token_transfer': blockchain + '_token_transfers',
+            'token_transfer': blockchain + '_token_transfers_v2',
             'trace': blockchain + '_traces',
             'geth_trace': blockchain + '_traces',
             'contract': blockchain + '_contracts',
