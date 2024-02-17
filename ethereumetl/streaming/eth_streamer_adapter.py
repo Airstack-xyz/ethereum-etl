@@ -198,8 +198,6 @@ class EthStreamerAdapter:
 
     def _export_contracts(self, traces):
         exporter = InMemoryItemExporter(item_types=['contract'])
-
-        #GOPI TODO: addi export_contract as well to get to know if the to_address is contract or not from transaction?
         job = ExtractContractsJob(
             traces_iterable=traces,
             batch_size=self.batch_size,
