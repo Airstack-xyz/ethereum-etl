@@ -25,7 +25,6 @@ class KafkaItemExporter:
             sasl_plain_username=os.getenv('KAFKA_SCRAM_USERID'),
             sasl_plain_password=os.getenv('KAFKA_SCRAM_PASSWORD'),
             client_id=socket.gethostname(),
-            retries=1,
             compression_type='lz4',
             request_timeout_ms= 60000,
             max_block_ms= 120000,
