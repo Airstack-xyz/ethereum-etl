@@ -34,7 +34,7 @@ from ethereumetl.thread_local_proxy import ThreadLocalProxy
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.option('-l', '--last-synced-block-file', default='last_synced_block.txt', show_default=True, type=str, help='')
 @click.option('--lag', default=0, show_default=True, type=int, help='The number of blocks to lag behind the network.')
-@click.option('-p', '--provider-uri', default='https://mainnet.infura.io', show_default=True, type=str,
+@click.option('-p', '--provider-uri', default='', show_default=True, type=str,
               help='The URI of the web3 provider e.g. '
                    'file://$HOME/Library/Ethereum/geth.ipc or https://mainnet.infura.io')
 @click.option('-o', '--output', type=str,
@@ -64,13 +64,16 @@ def stream(last_synced_block_file, lag, provider_uri, output, start_block, end_b
     from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
     from blockchainetl.streaming.streamer import Streamer
 
-    # TODO: Implement fallback mechanism for provider uris instead of picking randomly
-    #provider_uri = pick_random_provider_uri(provider_uri)
-    #logging.info('Using ' + provider_uri)
-
     if os.environ['BLOCKCHAIN'] == None:
         raise ValueError('BLOCKCHAIN env is missing')
-
+    
+    provider_uri = os.environ['PROVIDER_URI']
+    if provider_uri == None:
+        raise ValueError('PROVIDER_URI env is missing')
+    
+    if os.environ['KAFKA_BROKER_URI'] == None:
+        raise ValueError('KAFKA_BROKER_URI env is missing')
+    
     streamer_adapter = EthStreamerAdapter(
         batch_web3_provider=ThreadLocalProxy(lambda: get_provider_from_uri(provider_uri, batch=True)),
         item_exporter=create_item_exporters(output),

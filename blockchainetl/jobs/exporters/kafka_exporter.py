@@ -13,10 +13,10 @@ from blockchainetl.jobs.exporters.converters.composite_item_converter import Com
 
 class KafkaItemExporter:
 
-    def __init__(self, output, item_type_to_topic_mapping, converters=()):
+    def __init__(self, item_type_to_topic_mapping, converters=()):
         self.item_type_to_topic_mapping = item_type_to_topic_mapping
         self.converter = CompositeItemConverter(converters)
-        self.connection_url = self.get_connection_url(output)
+        self.connection_url = self.get_connection_url()
         print(self.connection_url)
         self.producer = KafkaProducer(
             bootstrap_servers=self.connection_url,
@@ -30,13 +30,12 @@ class KafkaItemExporter:
             max_block_ms= 120000,
             buffer_memory= 100000000)
 
-    def get_connection_url(self, output):
-        try:
-            kafka_broker_uri = output.split('/')[1]
-            return kafka_broker_uri.split(',')
-        except KeyError:
-            raise Exception('Invalid kafka output param, It should be in format of "kafka/127.0.0.1:9092"')
-
+    def get_connection_url(self):
+        kafka_broker_uri = os.environ['KAFKA_BROKER_URI']
+        if kafka_broker_uri is None:
+            raise Exception('KAFKA_BROKER_URI is not set')
+        return kafka_broker_uri.split(',')
+    
     def open(self):
         pass
 

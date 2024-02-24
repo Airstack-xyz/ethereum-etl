@@ -29,3 +29,5 @@ class EthContract(object):
         self.is_erc20 = False
         self.is_erc721 = False
         self.block_number = None
+        self.is_erc1155 = False
+        self.is_proxy = False

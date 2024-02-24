@@ -89,7 +89,7 @@ def create_item_exporter(output):
     elif item_exporter_type == ItemExporterType.KAFKA:
         from blockchainetl.jobs.exporters.kafka_exporter import KafkaItemExporter
         blockchain = os.environ['BLOCKCHAIN']
-        item_exporter = KafkaItemExporter(output, item_type_to_topic_mapping={
+        item_exporter = KafkaItemExporter( item_type_to_topic_mapping={
             'block': blockchain + '_blocks',
             'transaction': blockchain + '_transactions',
             'log': blockchain + '_logs',
@@ -97,7 +97,10 @@ def create_item_exporter(output):
             'trace': blockchain + '_traces',
             'geth_trace': blockchain + '_traces',
             'contract': blockchain + '_contracts',
-            'token': blockchain + '_tokens',
+            'token': blockchain + '_enriched_contracts', # this is done because there are chances of losing few tokens
+                                                        #  if we simply rely on this tool since there are many tokens doesn't have proper standards
+                                                        # will enrich all contracts and store in enriched_contracts kafka and then 
+                                                        # using CH MVs will identify the token_type from transfers table
         })
 
     else:
