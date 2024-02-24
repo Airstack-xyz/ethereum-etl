@@ -58,6 +58,8 @@ class EthContractService:
                c.implements('allowance(address,address)')
     
     def is_erc20_contract_v1(self, bytecode):
+          if bytecode is None or bytecode == '0x':
+              return False
           return (
             get_function_sighash_without0x('balanceOf(address)') in bytecode and
             get_function_sighash_without0x('totalSupply()') in bytecode and 
@@ -85,6 +87,8 @@ class EthContractService:
                c.implements('approve(address,uint256)')
     
     def is_erc721_contract_v1(self, bytecode):
+        if bytecode is None or bytecode == '0x':
+              return False
         return (
             get_function_sighash_without0x('balanceOf(address)') in bytecode and
             get_function_sighash_without0x('ownerOf(uint256)') in bytecode and 
@@ -100,6 +104,8 @@ class EthContractService:
                c.implements('transferBatch(address,address,address,uint256[],uint256[])')
     
     def is_erc1155_contract_v1(self, bytecode):
+        if bytecode is None or bytecode == '0x':
+              return False
         return (
             get_function_sighash_without0x('TransferSingle(address,address,address,uint256,uint256)') in bytecode and
             get_function_sighash_without0x('TransferBatch(address,address,address,uint256[],uint256[])') in bytecode
@@ -116,6 +122,8 @@ class EthContractService:
         return c.implements('implementation()')
     
     def is_proxy_contract_v1(self, bytecode):
+         if bytecode is None or bytecode == '0x':
+              return False
          return (
             get_function_sighash_without0x('implementation()') in bytecode 
         )
