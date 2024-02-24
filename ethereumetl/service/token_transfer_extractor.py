@@ -66,6 +66,10 @@ class EthTokenTransferExtractor(object):
             token_transfer.from_address = word_to_address(topics_with_data[1])
             token_transfer.to_address = word_to_address(topics_with_data[2])
             token_transfer.value = hex_to_dec(topics_with_data[3])
+            if token_transfer.token_standard == 'ERC721':
+                token_transfer.value = 1
+                token_transfer.token_id = hex_to_dec(topics_with_data[3])
+           
             token_transfer.transaction_hash = receipt_log.transaction_hash
             token_transfer.log_index = receipt_log.log_index
             token_transfer.block_number = receipt_log.block_number

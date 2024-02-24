@@ -29,3 +29,6 @@ class EthToken(object):
         self.decimals = None
         self.total_supply = None
         self.block_number = None
+        self.token_type = None
+        self.is_proxy = False
+        self.implementation_address = None

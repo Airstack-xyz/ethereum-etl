@@ -30,5 +30,8 @@ class EthTokenMapper(object):
             'name': token.name,
             'decimals': token.decimals,
             'total_supply': token.total_supply,
-            'block_number': token.block_number
+            'block_number': token.block_number,
+            'token_type': token.token_type,
+            'is_proxy': token.is_proxy,
+            'implementation_address': token.implementation_address
         }

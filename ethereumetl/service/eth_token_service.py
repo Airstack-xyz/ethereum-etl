@@ -24,7 +24,9 @@ import logging
 from web3.exceptions import BadFunctionCallOutput, ContractLogicError
 
 from ethereumetl.domain.token import EthToken
-from ethereumetl.erc20_abi import ERC20_ABI, ERC20_ABI_ALTERNATIVE_1
+from ethereumetl.abi.erc20_abi import ERC20_ABI, ERC20_ABI_ALTERNATIVE_1
+from ethereumetl.abi.proxy_abi import PROXY_CONTRACT_ABI
+
 
 logger = logging.getLogger('eth_token_service')
 
@@ -68,6 +70,14 @@ class EthTokenService(object):
         token.total_supply = total_supply
 
         return token
+    
+    def get_proxy_implementation(self, token_address):
+        checksum_address = self._web3.toChecksumAddress(token_address)
+        contract = self._web3.eth.contract(address=checksum_address, abi=PROXY_CONTRACT_ABI)
+        implementation = self._get_first_result(
+            contract.functions.implementation()
+        )
+        return implementation.lower() if implementation is not None else None
 
     def _get_first_result(self, *funcs):
         for func in funcs:

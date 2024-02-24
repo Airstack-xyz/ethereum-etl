@@ -68,7 +68,7 @@ def enrich_transactions(transactions, receipts):
             'from_address',
             'to_address',
             'value',
-            'gas',
+            ('gas', 'gas_limit'),
             'gas_price',
             'input',
             'block_timestamp',
@@ -79,17 +79,16 @@ def enrich_transactions(transactions, receipts):
             'transaction_type'
         ],
         right_fields=[
-            ('cumulative_gas_used', 'receipt_cumulative_gas_used'),
-            ('gas_used', 'receipt_gas_used'),
-            ('contract_address', 'receipt_contract_address'),
-            ('root', 'receipt_root'),
-            ('status', 'receipt_status'),
-            ('effective_gas_price', 'receipt_effective_gas_price'),
-            ('l1_fee', 'receipt_l1_fee'),
-            ('l1_gas_used', 'receipt_l1_gas_used'),
-            ('l1_gas_price', 'receipt_l1_gas_price'),
-            ('l1_fee_scalar', 'receipt_l1_fee_scalar')
-
+            'cumulative_gas_used', 
+            'gas_used',
+            'contract_address',
+            'root',
+            'status',
+            'effective_gas_price',
+            'l1_fee',
+            'l1_gas_used',
+            'l1_gas_price',
+            'l1_fee_scalar',
         ]))
 
     if len(result) != len(transactions):
@@ -112,7 +111,6 @@ def enrich_logs(blocks, logs):
             'topic1',
             'topic2',
             'topic3',
-            #'topics',
             'block_number',
             'tx_from',
             'tx_to'
@@ -144,7 +142,8 @@ def enrich_token_transfers(blocks, token_transfers):
             'token_standard',
             'token_id',
             'token_ids',
-            'values'
+            'values',
+            'operator'
         ],
         [
             ('timestamp', 'block_timestamp'),
@@ -238,6 +237,8 @@ def enrich_contracts(blocks, contracts):
             'function_sighashes',
             'is_erc20',
             'is_erc721',
+            'is_erc1155',
+            'is_proxy',
             'block_number'
         ],
         [
@@ -261,7 +262,10 @@ def enrich_tokens(blocks, tokens):
             'name',
             'decimals',
             'total_supply',
-            'block_number'
+            'block_number',
+            'token_type',
+            'is_proxy',
+            'implementation_address'
         ],
         [
             ('timestamp', 'block_timestamp'),

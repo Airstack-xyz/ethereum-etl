@@ -110,7 +110,7 @@ class EthStreamerAdapter:
             sort_by(enriched_tokens, ('block_number',))
 
         self.calculate_item_ids(all_items)
-        self.calculate_item_timestamps(all_items)
+        #self.calculate_item_timestamps(all_items)
 
         self.item_exporter.export_items(all_items)
 
@@ -252,7 +252,7 @@ class EthStreamerAdapter:
 
     def calculate_item_ids(self, items):
         for item in items:
-            item['item_id'] = self.item_id_calculator.calculate(item)
+            item['id'] = self.item_id_calculator.calculate(item)
 
     def calculate_item_timestamps(self, items):
         for item in items:
