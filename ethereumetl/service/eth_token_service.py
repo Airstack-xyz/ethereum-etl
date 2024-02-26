@@ -29,7 +29,7 @@ from ethereumetl.abi.proxy_abi import PROXY_CONTRACT_ABI
 
 
 logger = logging.getLogger('eth_token_service')
-
+logger.setLevel(logging.INFO)
 
 class EthTokenService(object):
     def __init__(self, web3, function_call_result_transformer=None):
@@ -108,7 +108,7 @@ class EthTokenService(object):
             b = b.decode('utf-8')
         except UnicodeDecodeError as e:
             if ignore_errors:
-                logger.debug('A UnicodeDecodeError exception occurred while trying to decode bytes to string', exc_info=True)
+                logger.warn('A UnicodeDecodeError exception occurred while trying to decode bytes to string', exc_info=True)
                 b = None
             else:
                 raise e
@@ -128,4 +128,6 @@ def call_contract_function(func, ignore_errors, default_value=None):
                              + 'This exception can be safely ignored.', exc_info=True)
             return default_value
         else:
+            logger.error('An exception occurred in function {} of contract {} and error: {}'.format(func.fn_name, func.address, ex)
+                            , exc_info=True)
             raise ex
