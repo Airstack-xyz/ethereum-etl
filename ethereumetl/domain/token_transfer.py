@@ -33,7 +33,8 @@ class EthTokenTransfer(object):
         self.token_id = None
         self.operator = None
         self.transaction_index = None
-        self.transfer_type = None
-        self.token_standard = None
+        self.type = None
+        self.token_type = None
         self.token_ids = []
         self.values = []
+        self.sub_type = None

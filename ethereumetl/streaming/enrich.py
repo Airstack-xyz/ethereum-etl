@@ -138,12 +138,13 @@ def enrich_token_transfers(blocks, token_transfers):
             'transaction_hash',
             'log_index',
             'block_number',
-            'transfer_type',
-            'token_standard',
+            'type',
+            'token_type',
             'token_id',
             'token_ids',
             'values',
-            'operator'
+            'operator',
+            'sub_type'
         ],
         [
             ('timestamp', 'block_timestamp'),
