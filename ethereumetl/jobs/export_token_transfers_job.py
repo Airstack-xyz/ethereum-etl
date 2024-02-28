@@ -27,7 +27,7 @@ from ethereumetl.mappers.receipt_log_mapper import EthReceiptLogMapper
 from ethereumetl.service.token_transfer_extractor import EthTokenTransferExtractor
 from ethereumetl.utils import validate_range
 from ethereumetl.enumeration.entity_type import EntityType
-from ethereumetl.constants import ERC20_ERC721_TRANSFER_EVENT_TOPIC
+from ethereumetl.constants import constants
 
 
 class ExportTokenTransfersJob(BaseJob):
@@ -71,7 +71,7 @@ class ExportTokenTransfersJob(BaseJob):
         filter_params = {
             'fromBlock': block_number_batch[0],
             'toBlock': block_number_batch[-1],
-            'topics': [ERC20_ERC721_TRANSFER_EVENT_TOPIC]
+            'topics': [constants.ERC20_ERC721_TRANSFER_EVENT_TOPIC]
         }
 
         if self.tokens is not None and len(self.tokens) > 0:

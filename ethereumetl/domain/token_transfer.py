@@ -37,4 +37,4 @@ class EthTokenTransfer(object):
         self.token_type = None
         self.token_ids = []
         self.values = []
-        self.sub_type = None
+        self.category = None

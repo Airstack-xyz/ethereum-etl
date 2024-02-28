@@ -47,7 +47,7 @@ class EthTokenTransferExtractor(object):
                 token_transfer.token_type = constants.TOKEN_TYPE_ERC20
             elif topics_length == 4:
                 token_transfer.token_type = constants.TOKEN_TYPE_ERC721
-            token_transfer.sub_type = constants.SINGLE_TRANSFER
+            token_transfer.category = constants.SINGLE_TRANSFER
             # Handle unindexed event fields
             topics_with_data = topics + split_to_words(receipt_log.data)
             # if the number of topics and fields in data part != 4, then it's a weird event
@@ -69,7 +69,7 @@ class EthTokenTransferExtractor(object):
             token_transfer.block_number = receipt_log.block_number
             token_transfer.transaction_index = receipt_log.transaction_index
             token_transfer.operator = receipt_log.tx_from
-            token_transfer.type = get_transfer_type(token_transfer.from_address, token_transfer.to_address)
+            token_transfer.transfer_type = get_transfer_type(token_transfer.from_address, token_transfer.to_address)
             return token_transfer
         
         elif topic_0 == constants.ERC1155_TRANSFER_SINGLE_EVENT_TOPIC:
@@ -92,9 +92,9 @@ class EthTokenTransferExtractor(object):
             token_transfer.log_index = receipt_log.log_index
             token_transfer.block_number = receipt_log.block_number
             token_transfer.transaction_index = receipt_log.transaction_index
-            token_transfer.sub_type = constants.SINGLE_TRANSFER
+            token_transfer.category = constants.SINGLE_TRANSFER
             token_transfer.token_type = constants.TOKEN_TYPE_ERC1155
-            token_transfer.type = get_transfer_type( token_transfer.from_address, token_transfer.to_address)
+            token_transfer.transfer_type = get_transfer_type( token_transfer.from_address, token_transfer.to_address)
             return token_transfer
         
         elif topic_0 == constants.ERC1155_TRANSFER_BATCH_EVENT_TOPIC:
@@ -110,19 +110,19 @@ class EthTokenTransferExtractor(object):
             token_transfer.log_index = receipt_log.log_index
             token_transfer.block_number = receipt_log.block_number
             token_transfer.transaction_index = receipt_log.transaction_index
-            token_transfer.sub_type = constants.BATCH_TRANSFER
+            token_transfer.category = constants.BATCH_TRANSFER
             token_transfer.token_type = constants.TOKEN_TYPE_ERC1155
-            token_transfer.type = get_transfer_type( token_transfer.from_address, token_transfer.to_address)
+            token_transfer.transfer_type = get_transfer_type( token_transfer.from_address, token_transfer.to_address)
             return token_transfer
 
         return None
 
 def get_transfer_type(from_address, to_address):
-    if from_address == constants.ZERO_ADDRESS and to_address != constants.ZERO_ADDRESS:
+    if from_address == constants.ZERO_ADDRESS and to_address not in constants.BURN_ADDRESSES:
         return constants.TRANSFER_TYPE_MINT
-    elif from_address != constants.ZERO_ADDRESS and to_address != constants.ZERO_ADDRESS:
+    elif from_address not in constants.BURN_ADDRESSES and to_address not in constants.BURN_ADDRESSES:
         return constants.TRANSFER_TYPE_TRANSFER
-    elif from_address != constants.ZERO_ADDRESS and to_address == constants.ZERO_ADDRESS:
+    elif to_address in constants.BURN_ADDRESSES:
         return constants.TRANSFER_TYPE_BURN
 
 def split_to_words(data):
