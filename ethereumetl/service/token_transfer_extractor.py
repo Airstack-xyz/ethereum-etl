@@ -118,7 +118,7 @@ class EthTokenTransferExtractor(object):
         return None
 
 def get_transfer_type(from_address, to_address):
-    if from_address == constants.ZERO_ADDRESS and to_address not in constants.BURN_ADDRESSES:
+    if from_address in constants.BURN_ADDRESSES and to_address not in constants.BURN_ADDRESSES:
         return constants.TRANSFER_TYPE_MINT
     elif from_address not in constants.BURN_ADDRESSES and to_address not in constants.BURN_ADDRESSES:
         return constants.TRANSFER_TYPE_TRANSFER
