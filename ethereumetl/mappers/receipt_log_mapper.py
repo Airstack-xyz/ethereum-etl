@@ -97,6 +97,8 @@ class EthReceiptLogMapper(object):
         receipt_log.block_number = dict.get('block_number')
         receipt_log.address = dict.get('address')
         receipt_log.data = dict.get('data')
+        receipt_log.tx_from = dict.get('tx_from')
+        receipt_log.tx_to = dict.get('tx_to')
 
         topics = dict.get('topics')
         if isinstance(topics, str):
