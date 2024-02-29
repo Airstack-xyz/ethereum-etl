@@ -35,6 +35,7 @@ from ethereumetl.json_rpc_requests import generate_get_code_json_rpc
 import json
 from ethereumetl.service.eth_contract_service import EthContractService
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
+from ethereumetl.constants import constants
 
 
 class ExportTokensJob(BaseJob):
@@ -77,13 +78,13 @@ class ExportTokensJob(BaseJob):
                     contract = contracts[0]
                     token_type = None
                     if contract.get('is_erc20'):
-                        token_type = 'ERC20'
+                        token_type = constants.TOKEN_TYPE_ERC20
                     elif contract.get('is_erc721'):
-                        token_type = 'ERC721'
+                        token_type = constants.TOKEN_TYPE_ERC721
                     elif contract.get('is_erc1155'):
-                        token_type = 'ERC1155'
+                        token_type = constants.TOKEN_TYPE_ERC1155
                     elif contract.get('is_proxy'):
-                        token_type = 'PROXY'   # marking it as proxy if the implementation is a proxy ideally this should not be case.
+                        token_type = constants.PROXY   # marking it as proxy if the implementation is a proxy ideally this should not be case.
                     token.token_type = token_type
 
         token_dict = self.token_mapper.token_to_dict(token)

@@ -22,6 +22,7 @@
 
 
 from ethereumetl.jobs.export_tokens_job import ExportTokensJob
+from ethereumetl.constants import constants
 
 
 class ExtractTokensJob(ExportTokensJob):
@@ -33,16 +34,15 @@ class ExtractTokensJob(ExportTokensJob):
         self.batch_work_executor.execute(self.contracts_iterable, self._export_tokens_from_contracts)
 
     def _export_tokens_from_contracts(self, contracts):
-        #tokens = [contract for contract in contracts if contract.get('is_erc20') or contract.get('is_erc721') or contract.get('is_erc1155') or contract.get('is_proxy')]
         tokens = [contract for contract in contracts if contract.get('bytecode') is not None]  # filter out contracts without bytecode
         for token in tokens :
             token_type = None
             if token.get('is_erc20'):
-               token_type = 'ERC20'
+               token_type = constants.TOKEN_TYPE_ERC20
             elif token.get('is_erc721'):
-                token_type = 'ERC721'
+                token_type = constants.TOKEN_TYPE_ERC721
             elif token.get('is_erc1155'):
-                token_type = 'ERC1155'
+                token_type = constants.TOKEN_TYPE_ERC1155
             self._export_token(token_address=token['address'], block_number=token['block_number'], token_type=token_type, is_proxy = token.get('is_proxy'))
 
 
