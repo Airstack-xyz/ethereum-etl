@@ -75,7 +75,7 @@ def stream(last_synced_block_file, lag, output, start_block, end_block, entity_t
     
     if mode == constants.RUN_MODE_CORRECTION:
         blocks_to_reprocess = [int(block) for block in blocks_to_reprocess.split(',')]
-        logging.info('blocks_to_reprocess: {}'.format(blocks_to_reprocess))
+        logging.info('blocks_to_reprocess: {} with length: {}'.format(blocks_to_reprocess, len(blocks_to_reprocess)))
         if len(blocks_to_reprocess) == 0:
             raise ValueError('blocks_to_reprocess is empty')
     
