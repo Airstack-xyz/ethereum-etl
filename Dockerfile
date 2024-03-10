@@ -1,5 +1,4 @@
-FROM python:3.7
-MAINTAINER Evgeny Medvedev <evge.medvedev@gmail.com>
+FROM python:3.9.6
 ENV PROJECT_DIR=ethereum-etl
 
 RUN mkdir /$PROJECT_DIR
