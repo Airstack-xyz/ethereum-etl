@@ -28,6 +28,7 @@ from datetime import datetime
 
 from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
 from blockchainetl.file_utils import smart_open
+from ethereumetl.constants import constants
 
 
 class Streamer:
@@ -41,7 +42,9 @@ class Streamer:
             period_seconds=10,
             block_batch_size=10,
             retry_errors=True,
-            pid_file=None):
+            pid_file=None,
+            mode=constants.RUN_MODE_NORMAL,
+            blocks_to_reprocess= None):
         self.blockchain_streamer_adapter = blockchain_streamer_adapter
         self.last_synced_block_file = last_synced_block_file
         self.lag = lag
@@ -51,11 +54,14 @@ class Streamer:
         self.block_batch_size = block_batch_size
         self.retry_errors = retry_errors
         self.pid_file = pid_file
+        self.mode = mode
+        self.blocks_to_reprocess = blocks_to_reprocess
+        self.last_synced_block = None
+        if self.mode == constants.RUN_MODE_NORMAL:
+            if self.start_block is not None or not os.path.isfile(self.last_synced_block_file):
+                init_last_synced_block_file((self.start_block or 0) - 1, self.last_synced_block_file)
 
-        if self.start_block is not None or not os.path.isfile(self.last_synced_block_file):
-            init_last_synced_block_file((self.start_block or 0) - 1, self.last_synced_block_file)
-
-        self.last_synced_block = read_last_synced_block(self.last_synced_block_file)
+            self.last_synced_block = read_last_synced_block(self.last_synced_block_file)
 
     def stream(self):
         try:
@@ -63,15 +69,35 @@ class Streamer:
                 logging.info('Creating pid file {}'.format(self.pid_file))
                 write_to_file(self.pid_file, str(os.getpid()))
             self.blockchain_streamer_adapter.open()
-            self._do_stream()
+            if self.mode == constants.RUN_MODE_CORRECTION:
+                logging.info('Running in correction mode')
+                self._do_stream_correction()
+            elif self.mode == constants.RUN_MODE_NORMAL:
+                logging.info('Running in normal mode')
+                self._do_stream()
+    
         finally:
             self.blockchain_streamer_adapter.close()
             if self.pid_file is not None:
                 logging.info('Deleting pid file {}'.format(self.pid_file))
                 delete_file(self.pid_file)
 
+    def _do_stream_correction(self):
+        for block in self.blocks_to_reprocess:
+            while True:
+                try:
+                    current_time = datetime.now()
+                    self._sync_cycle_correction(block)
+                    elapsed_time = datetime.now() - current_time
+                    logging.info('Correction-> Synced block {} in {}'.format(block,elapsed_time))
+                    break
+                except Exception as e:
+                    logging.exception('Correction-> An exception occurred while syncing block number: {} , is retryable erro: {}', block, e, self.retry_errors)
+                    logging.info('Correction-> Sleeping for {} seconds...'.format(self.period_seconds))
+                    time.sleep(self.period_seconds)
+
     def _do_stream(self):
-        while True and (self.end_block is None or self.last_synced_block < self.end_block):
+        while (self.end_block is None or self.last_synced_block < self.end_block):
             synced_blocks = 0
             try:
                 current_time = datetime.now()
@@ -79,7 +105,6 @@ class Streamer:
                 elapsed_time = datetime.now() - current_time
                 logging.info('Synced {} blocks in {}'.format(synced_blocks, elapsed_time))
             except Exception as e:
-                # https://stackoverflow.com/a/4992124/1580227
                 logging.exception('An exception occurred while syncing block data.', e)
                 if not self.retry_errors:
                     raise e
@@ -88,6 +113,11 @@ class Streamer:
                 logging.info('Nothing to sync. Sleeping for {} seconds...'.format(self.period_seconds))
                 time.sleep(self.period_seconds)
 
+    def _sync_cycle_correction(self, target_block):
+        logging.info('Correction-> target block {}, last synced block {}'.format(target_block, self.last_synced_block))
+        self.blockchain_streamer_adapter.export_all(target_block, target_block)
+        self.last_synced_block = target_block
+    
     def _sync_cycle(self):
         current_block = self.blockchain_streamer_adapter.get_current_block_number()
         target_block = self._calculate_target_block(current_block, self.last_synced_block)

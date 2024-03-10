@@ -38,3 +38,6 @@ BURN_ADDRESSES = [
 "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
 "0xffffffffffffffffffffffffffffffffffffffff",
 "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]
+
+RUN_MODE_CORRECTION = 'correction'
+RUN_MODE_NORMAL= 'normal'

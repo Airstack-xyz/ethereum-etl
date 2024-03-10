@@ -29,14 +29,11 @@ from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.providers.auto import get_provider_from_uri
 from ethereumetl.streaming.item_exporter_creator import create_item_exporters
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
-
+from ethereumetl.constants import constants
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.option('-l', '--last-synced-block-file', default='last_synced_block.txt', show_default=True, type=str, help='')
 @click.option('--lag', default=0, show_default=True, type=int, help='The number of blocks to lag behind the network.')
-@click.option('-p', '--provider-uri', default='', show_default=True, type=str,
-              help='The URI of the web3 provider e.g. '
-                   'file://$HOME/Library/Ethereum/geth.ipc or https://mainnet.infura.io')
 @click.option('-o', '--output', type=str,
               help='Either Google PubSub topic path e.g. projects/your-project/topics/crypto_ethereum; '
                    'or Postgres connection url e.g. postgresql+pg8000://postgres:admin@127.0.0.1:5432/ethereum; '
@@ -54,8 +51,10 @@ from ethereumetl.thread_local_proxy import ThreadLocalProxy
 @click.option('-w', '--max-workers', default=5, show_default=True, type=int, help='The number of workers')
 @click.option('--log-file', default=None, show_default=True, type=str, help='Log file')
 @click.option('--pid-file', default=None, show_default=True, type=str, help='pid file')
-def stream(last_synced_block_file, lag, provider_uri, output, start_block, end_block, entity_types, max_workers,
-           period_seconds=10, batch_size=2, block_batch_size=10, log_file=None, pid_file=None):
+@click.option('--mode', default='normal', show_default=True, type=str, help='mode to run the streamer ie. normal / correction')
+@click.option('--blocks-to-reprocess', default=None, show_default=True, type=str, help='specify the blocks to reprocess in comma (,) separated format')
+def stream(last_synced_block_file, lag, output, start_block, end_block, entity_types, max_workers,
+           period_seconds=10, batch_size=2, block_batch_size=10, log_file=None, pid_file=None, mode = None, blocks_to_reprocess = None):
     """Streams all data types to console or Google Pub/Sub."""
     configure_logging(log_file)
     configure_signals()
@@ -74,6 +73,12 @@ def stream(last_synced_block_file, lag, provider_uri, output, start_block, end_b
     if os.environ['KAFKA_BROKER_URI'] == None:
         raise ValueError('KAFKA_BROKER_URI env is missing')
     
+    if mode == constants.RUN_MODE_CORRECTION:
+        blocks_to_reprocess = [int(block) for block in blocks_to_reprocess.split(',')]
+        logging.info('blocks_to_reprocess: {} with length: {}'.format(blocks_to_reprocess, len(blocks_to_reprocess)))
+        if len(blocks_to_reprocess) == 0:
+            raise ValueError('blocks_to_reprocess is empty')
+    
     streamer_adapter = EthStreamerAdapter(
         batch_web3_provider=ThreadLocalProxy(lambda: get_provider_from_uri(provider_uri, batch=True)),
         item_exporter=create_item_exporters(output),
@@ -89,7 +94,9 @@ def stream(last_synced_block_file, lag, provider_uri, output, start_block, end_b
         end_block= end_block,
         period_seconds=period_seconds,
         block_batch_size=block_batch_size,
-        pid_file=pid_file
+        pid_file=pid_file,
+        mode=mode,
+        blocks_to_reprocess=blocks_to_reprocess
     )
     streamer.stream()
 
