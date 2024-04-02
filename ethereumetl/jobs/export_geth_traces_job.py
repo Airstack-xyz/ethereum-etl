@@ -73,6 +73,8 @@ class ExportGethTracesJob(BaseJob):
             
             # add tx_hash to tx_trace
             for obj in result:
+                print("Obj details for block number: ", block_number)
+                print(obj)
                 obj['result']['tx_hash'] = obj.get('txHash')
                 trace_error = obj.get('result').get('error')
                 if trace_error is not None:
