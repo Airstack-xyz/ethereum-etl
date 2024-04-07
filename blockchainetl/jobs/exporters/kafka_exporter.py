@@ -47,13 +47,14 @@ class KafkaItemExporter:
         item_id = item.get('id')
         
         if item_id is not None and item_type is not None and item_type in self.item_type_to_topic_mapping:
+            item_type = self.item_type_to_topic_mapping[item_type]
             data = json.dumps(item).encode('utf-8')            
             processed = self.already_processed(item_type, item_id)
             
             if not processed:
                 logging.info(f'Processing message of Type=[{item_type}]; Id=[{item_id}]')
                 self.mark_processed(item_type, item_id)
-                return self.producer.send(self.item_type_to_topic_mapping[item_type], value=data)
+                return self.producer.send(item_type, value=data)
 
             logging.info(f'Message was already processed skipping...  Type=[{item_type}]; Id=[{item_id}]')
         else:
@@ -67,20 +68,25 @@ class KafkaItemExporter:
         self.redis.close()
         pass
 
+    # TODO: improve conditions based on sync_mode
     def already_processed(self, item_type, item_id):
         if self.sync_mode == "live":
-            return self.redis.exists_in_set(self.item_type_to_topic_mapping[item_type], item_id)
+            return self.redis.exists_in_set(item_type, item_id)
         elif self.sync_mode == "backfill":
-             # TODO: fix this
-            return False
+            exist_in_bf = self.redis.exists_in_bf(item_type, item_id)
+            
+            if exist_in_bf:
+                # TODO: check in CH
+                return exist_in_bf
+         
+            return exist_in_bf
     
+    # TODO: improve conditions based on sync_mode
     def mark_processed(self, item_type, item_id):
         if self.sync_mode == "live":
-            return self.redis.add_to_set(self.item_type_to_topic_mapping[item_type], item_id)
+            return self.redis.add_to_set(item_type, item_id)
         elif self.sync_mode == "backfill":
-             # TODO: fix this
-            return True
-
+            return self.redis.add_to_bf(item_type, item_id)
 
 def group_by_item_type(items):
     result = collections.defaultdict(list)

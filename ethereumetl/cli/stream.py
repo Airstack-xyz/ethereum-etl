@@ -73,6 +73,9 @@ def stream(last_synced_block_file, lag, output, start_block, end_block, entity_t
     if os.environ['KAFKA_BROKER_URI'] == None:
         raise ValueError('KAFKA_BROKER_URI env is missing')
     
+    if os.environ['SYNC_MODE'] == None:
+        raise ValueError('SYNC_MODE env is missing')
+    
     if mode == constants.RUN_MODE_CORRECTION:
         blocks_to_reprocess = [int(block) for block in blocks_to_reprocess.split(',')]
         logging.info('blocks_to_reprocess: {} with length: {}'.format(blocks_to_reprocess, len(blocks_to_reprocess)))
