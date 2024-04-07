@@ -30,6 +30,7 @@ from blockchainetl.streaming.streamer_adapter_stub import StreamerAdapterStub
 from blockchainetl.file_utils import smart_open
 from ethereumetl.constants import constants
 
+from ethereumetl.metrics.prometheus import PrometheusConnector
 
 class Streamer:
     def __init__(
@@ -57,7 +58,11 @@ class Streamer:
         self.mode = mode
         self.blocks_to_reprocess = blocks_to_reprocess
         self.last_synced_block = None
-        if self.mode == constants.RUN_MODE_NORMAL:
+        
+        # init prometheus client
+        self.prometheus_client = PrometheusConnector()
+        
+        if self.mode == constants.RUN_MODE_NORMAL:            
             if self.start_block is not None or not os.path.isfile(self.last_synced_block_file):
                 init_last_synced_block_file((self.start_block or 0) - 1, self.last_synced_block_file)
 
@@ -125,6 +130,11 @@ class Streamer:
 
         logging.info('Current block {}, target block {}, last synced block {}, blocks to sync {}'.format(
             current_block, target_block, self.last_synced_block, blocks_to_sync))
+        
+        self.prometheus_client.current_block.set(current_block)
+        self.prometheus_client.target_block.set(target_block)
+        self.prometheus_client.last_synced_block.set(self.last_synced_block)
+        self.prometheus_client.blocks_to_sync.set(blocks_to_sync)
 
         if blocks_to_sync != 0:
             self.blockchain_streamer_adapter.export_all(self.last_synced_block + 1, target_block)

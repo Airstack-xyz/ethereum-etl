@@ -42,7 +42,8 @@ setup(
         'base58',
         'requests',
         'redis==3.5.3',
-        'redisbloom==0.4.1'
+        'redisbloom==0.4.1',
+        'prometheus-client==0.20.0'
     ],
     extras_require={
         'streaming': [

@@ -31,6 +31,8 @@ from ethereumetl.streaming.item_exporter_creator import create_item_exporters
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
 from ethereumetl.constants import constants
 
+from prometheus_client import start_http_server
+
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
 @click.option('-l', '--last-synced-block-file', default='last_synced_block.txt', show_default=True, type=str, help='')
 @click.option('--lag', default=0, show_default=True, type=int, help='The number of blocks to lag behind the network.')
@@ -101,6 +103,10 @@ def stream(last_synced_block_file, lag, output, start_block, end_block, entity_t
         mode=mode,
         blocks_to_reprocess=blocks_to_reprocess
     )
+    
+    # TODO: take port from env
+    start_http_server(9000)
+    
     streamer.stream()
 
 
