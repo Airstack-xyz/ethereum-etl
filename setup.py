@@ -41,7 +41,7 @@ setup(
         'urllib3<2',
         'base58',
         'requests',
-        'lz4'
+        'redis==5.0.3',
     ],
     extras_require={
         'streaming': [
