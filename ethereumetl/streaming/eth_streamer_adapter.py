@@ -100,14 +100,14 @@ class EthStreamerAdapter:
         logging.info('Exporting with ' + type(self.item_exporter).__name__)
 
         all_items = \
-            sort_by(enriched_blocks, 'number') + \
-            sort_by(enriched_transactions, ('block_number', 'transaction_index')) + \
             sort_by(enriched_logs, ('block_number', 'log_index')) + \
             sort_by(enriched_token_transfers, ('block_number', 'log_index')) + \
             sort_by(enriched_traces, ('block_number', 'trace_index')) + \
             sort_by(enriched_geth_traces, ('block_number', 'trace_index')) + \
             sort_by(enriched_contracts, ('block_number',)) + \
-            sort_by(enriched_tokens, ('block_number',))
+            sort_by(enriched_tokens, ('block_number',)) + \
+            sort_by(enriched_blocks, 'number') + \
+            sort_by(enriched_transactions, ('block_number', 'transaction_index'))
 
         self.calculate_item_ids(all_items)
         #self.calculate_item_timestamps(all_items)

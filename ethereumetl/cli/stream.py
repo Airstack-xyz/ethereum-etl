@@ -78,6 +78,24 @@ def stream(last_synced_block_file, lag, output, start_block, end_block, entity_t
     if os.environ['SYNC_MODE'] == None:
         raise ValueError('SYNC_MODE env is missing')
     
+    if os.environ['REDIS_HOST'] == None:
+        raise ValueError('REDIS_HOST env is missing')
+    
+    if os.environ['REDIS_PORT'] == None:
+        raise ValueError('REDIS_PORT env is missing')
+    
+    if os.environ['REDIS_DB'] == None:
+        raise ValueError('REDIS_DB env is missing')
+    
+    if os.environ['REDIS_LIVE_MESSAGE_TTL'] == None:
+        raise ValueError('REDIS_LIVE_MESSAGE_TTL env is missing')
+    
+    if os.environ['REDIS_BF_SIZE'] == None:
+        raise ValueError('REDIS_BF_SIZE env is missing')
+    
+    if os.environ['REDIS_BF_ERROR_RATE'] == None:
+        raise ValueError('REDIS_BF_ERROR_RATE env is missing')
+    
     if mode == constants.RUN_MODE_CORRECTION:
         blocks_to_reprocess = [int(block) for block in blocks_to_reprocess.split(',')]
         logging.info('blocks_to_reprocess: {} with length: {}'.format(blocks_to_reprocess, len(blocks_to_reprocess)))
