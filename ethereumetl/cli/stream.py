@@ -78,6 +78,9 @@ def stream(last_synced_block_file, lag, output, start_block, end_block, entity_t
     if os.environ['SYNC_MODE'] == None:
         raise ValueError('SYNC_MODE env is missing')
     
+    if os.environ['METRICS_PORT'] == None:
+        raise ValueError('METRICS_PORT env is missing')
+    
     if os.environ['REDIS_HOST'] == None:
         raise ValueError('REDIS_HOST env is missing')
     
@@ -122,10 +125,9 @@ def stream(last_synced_block_file, lag, output, start_block, end_block, entity_t
         blocks_to_reprocess=blocks_to_reprocess
     )
     
-    # TODO: take port from env
-    start_http_server(9000)
     
-    streamer.stream()
+    start_http_server(int(os.environ['METRICS_PORT'])) # start prometheus server
+    streamer.stream() # start syncing streams
 
 
 def parse_entity_types(entity_types):

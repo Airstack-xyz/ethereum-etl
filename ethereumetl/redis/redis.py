@@ -2,11 +2,10 @@ import os
 import redis
 import hashlib
 from redisbloom.client import Client
+from ethereumetl.constants import constants
 
 class RedisConnector:
     def __init__(self):
-        self.mode_backfill = "bf"
-        self.mode_live = 'live'
         self.ttl = os.environ['REDIS_LIVE_MESSAGE_TTL']
         
         redis_host = os.environ['REDIS_HOST']
@@ -18,16 +17,16 @@ class RedisConnector:
 
     # utility functions to be used in "live" sync_mode
     def exists_in_set(self, key, value):
-        key = self.create_key(key, value, self.mode_live)
+        key = self.create_key(key, value, constants.REDIS_LIVE_MODE_PREFIX)
         return self.redis_client.exists(key)
     
     def add_to_set(self, key, value):
-        key = self.create_key(key, value, self.mode_live)
+        key = self.create_key(key, value, constants.REDIS_LIVE_MODE_PREFIX)
         return self.redis_client.setex(key, self.ttl, '1')
     
     # utility functions to be used in "backfill" sync_mode
     def exists_in_bf(self, key, value):
-        key = self.create_key(key, value, self.mode_backfill)
+        key = self.create_key(key, value, constants.REDIS_BACKFILL_MODE_PREFIX)
         
         if not self.redis_client.exists(key):
             self.create_bf(key)
@@ -36,7 +35,7 @@ class RedisConnector:
         return self.redis_bf.bfExists(key, value)
         
     def add_to_bf(self, key, value):
-        key = self.create_key(key, value, self.mode_backfill)
+        key = self.create_key(key, value, constants.REDIS_BACKFILL_MODE_PREFIX)
         
         if not self.redis_client.exists(key):
             self.create_bf(key)

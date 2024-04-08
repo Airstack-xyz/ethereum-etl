@@ -88,12 +88,8 @@ def create_item_exporter(output):
         item_exporter = ConsoleItemExporter()
     elif item_exporter_type == ItemExporterType.KAFKA:
         from blockchainetl.jobs.exporters.kafka_exporter import KafkaItemExporter
-        from ethereumetl.redis.redis import RedisConnector
-
         blockchain = os.environ['BLOCKCHAIN']
-        redis = RedisConnector()
-        
-        item_exporter = KafkaItemExporter( redis=redis, item_type_to_topic_mapping={
+        item_exporter = KafkaItemExporter( item_type_to_topic_mapping={
             'block': blockchain + '_blocks',
             'transaction': blockchain + '_transactions',
             'log': blockchain + '_logs',
