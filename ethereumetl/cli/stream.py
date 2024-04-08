@@ -23,6 +23,7 @@ import logging
 import random
 import os
 import click
+from prometheus_client import start_http_server
 from blockchainetl.streaming.streaming_utils import configure_signals, configure_logging
 from ethereumetl.enumeration.entity_type import EntityType
 
@@ -72,7 +73,7 @@ def stream(last_synced_block_file, lag, output, start_block, end_block, entity_t
     
     if os.environ['KAFKA_BROKER_URI'] == None:
         raise ValueError('KAFKA_BROKER_URI env is missing')
-    
+
     if mode == constants.RUN_MODE_CORRECTION:
         blocks_to_reprocess = [int(block) for block in blocks_to_reprocess.split(',')]
         logging.info('blocks_to_reprocess: {} with length: {}'.format(blocks_to_reprocess, len(blocks_to_reprocess)))
@@ -98,6 +99,9 @@ def stream(last_synced_block_file, lag, output, start_block, end_block, entity_t
         mode=mode,
         blocks_to_reprocess=blocks_to_reprocess
     )
+    
+    port = int(os.environ.get('METRICS_PORT', constants.METRICS_PORT))
+    start_http_server(port) # start prometheus server
     streamer.stream()
 
 
