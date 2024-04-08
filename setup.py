@@ -40,10 +40,7 @@ setup(
         'ethereum-dasm==0.1.4',
         'urllib3<2',
         'base58',
-        'requests',
-        'redis==3.5.3',
-        'redisbloom==0.4.1',
-        'prometheus-client==0.20.0'
+        'requests'
     ],
     extras_require={
         'streaming': [
@@ -57,7 +54,10 @@ setup(
             # that's why  we lock the version here
             'libcst==0.3.21',
             # Later versions break the build in Travis CI for Python 3.7.2
-            'grpcio==1.46.3'
+            'grpcio==1.46.3',
+            'redis==3.5.3',
+            'redisbloom==0.4.1',
+            'prometheus-client==0.20.0'
         ],
         'streaming-kinesis': [
             'boto3==1.24.11',
