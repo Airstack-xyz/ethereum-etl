@@ -75,9 +75,6 @@ def stream(last_synced_block_file, lag, output, start_block, end_block, entity_t
     if os.environ['KAFKA_BROKER_URI'] == None:
         raise ValueError('KAFKA_BROKER_URI env is missing')
     
-    if os.environ['SYNC_MODE'] == None or os.environ['SYNC_MODE'] not in constants.VALID_SYNC_MODES:
-        raise ValueError('SYNC_MODE env is missing or incorrect')
-    
     if os.environ['METRICS_PORT'] == None:
         raise ValueError('METRICS_PORT env is missing')
     
@@ -92,12 +89,6 @@ def stream(last_synced_block_file, lag, output, start_block, end_block, entity_t
     
     if os.environ['REDIS_LIVE_MESSAGE_TTL'] == None:
         raise ValueError('REDIS_LIVE_MESSAGE_TTL env is missing')
-    
-    if os.environ['REDIS_BF_SIZE'] == None:
-        raise ValueError('REDIS_BF_SIZE env is missing')
-    
-    if os.environ['REDIS_BF_ERROR_RATE'] == None:
-        raise ValueError('REDIS_BF_ERROR_RATE env is missing')
     
     if mode == constants.RUN_MODE_CORRECTION:
         blocks_to_reprocess = [int(block) for block in blocks_to_reprocess.split(',')]

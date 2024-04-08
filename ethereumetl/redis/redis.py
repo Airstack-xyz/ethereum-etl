@@ -1,7 +1,6 @@
 import os
 import redis
 import hashlib
-from redisbloom.client import Client
 from ethereumetl.constants import constants
 
 class RedisConnector:
@@ -13,7 +12,6 @@ class RedisConnector:
         redis_database = os.environ['REDIS_DB']
         
         self.redis_client = redis.StrictRedis(host=redis_host, port=redis_port, db=redis_database)
-        self.redis_bf = Client(host=redis_host, port=redis_port, db=redis_database)
 
     # utility functions to be used in "live" sync_mode
     def exists_in_set(self, key, value):
@@ -26,24 +24,16 @@ class RedisConnector:
     
     # utility functions to be used in "backfill" sync_mode
     def exists_in_bf(self, key, value):
-        key = self.create_key(key, value, constants.REDIS_BACKFILL_MODE_PREFIX)
-        
-        if not self.redis_client.exists(key):
-            self.create_bf(key)
-            return False # as BF was not present
-        
-        return self.redis_bf.bfExists(key, value)
+        # TODO: add logic
+        pass
         
     def add_to_bf(self, key, value):
-        key = self.create_key(key, value, constants.REDIS_BACKFILL_MODE_PREFIX)
-        
-        if not self.redis_client.exists(key):
-            self.create_bf(key)
-        
-        return self.redis_bf.bfAdd(key, value)
+        # TODO: add logic
+        pass
     
     def create_bf(self, key):
-        self.redis_bf.bfCreate(key, os.environ['REDIS_BF_ERROR_RATE'], os.environ['REDIS_BF_SIZE'])
+        # TODO: add logic
+        pass
     
     def create_key(self, key, value, mode):
         hashed_data = hashlib.sha1(f"{key}_{value}".encode()).hexdigest()
@@ -51,4 +41,3 @@ class RedisConnector:
     
     def close(self):
         self.redis_client.close()
-        self.redis_bf.close()
