@@ -33,7 +33,7 @@ from ethereumetl.thread_local_proxy import ThreadLocalProxy
 from ethereumetl.constants import constants
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
-@click.option('-l', '--last-synced-block-file', default='last_synced_block.txt', show_default=True, type=str, help='')
+@click.option('-l', '--last-synced-block-file', default='last_synced_block.txt', show_default=True, type=str, help='Stores last-synced-block-number and is used to continue sync in-case of restarts. If both "--last-synced-block-file" and "--start-block" are provided then block-number in "--last-synced-block-file" takes precedence')
 @click.option('--lag', default=0, show_default=True, type=int, help='The number of blocks to lag behind the network.')
 @click.option('-o', '--output', type=str,
               help='Either Google PubSub topic path e.g. projects/your-project/topics/crypto_ethereum; '
@@ -42,7 +42,7 @@ from ethereumetl.constants import constants
                    'or kafka, output name and connection host:port e.g. kafka/127.0.0.1:9092 '
                    'or Kinesis, e.g. kinesis://your-data-stream-name'
                    'If not specified will print to console')
-@click.option('-s', '--start-block', default=None, show_default=True, type=int, help='Start block')
+@click.option('-s', '--start-block', required=True, type=int, help='Start block')
 @click.option('-E', '--end-block', default=None, show_default=True, type=int, help='End block')
 @click.option('-e', '--entity-types', default=','.join(EntityType.ALL_FOR_INFURA), show_default=True, type=str,
               help='The list of entity types to export.')
