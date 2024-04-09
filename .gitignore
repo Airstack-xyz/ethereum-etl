@@ -51,3 +51,4 @@ ENV/
 # etl
 last_synced_block.txt
 .vscode/
+.idea/
