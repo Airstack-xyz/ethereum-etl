@@ -23,6 +23,8 @@
 
 class EthTrace(object):
     def __init__(self):
+        self.before_evm_transfers = None
+        self.after_evm_transfers = None
         self.block_number = None
         self.transaction_hash = None
         self.transaction_index = None

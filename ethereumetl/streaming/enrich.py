@@ -199,6 +199,8 @@ def enrich_geth_traces(blocks, traces):
         [
             'type',
             'transaction_index',
+            'before_evm_transfers',
+            'after_evm_transfers',
             'from_address',
             'to_address',
             'value',
