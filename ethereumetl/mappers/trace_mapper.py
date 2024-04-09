@@ -54,7 +54,7 @@ class EthTraceMapper(object):
         trace.trace_type = trace_type
 
         # common fields in call/create
-        if trace_type in ('call', 'create'):
+        if trace_type in ('call', 'create', 'create2'):
             trace.from_address = to_normalized_address(action.get('from'))
             trace.value = hex_to_dec(action.get('value'))
             trace.gas = hex_to_dec(action.get('gas'))
@@ -67,6 +67,10 @@ class EthTraceMapper(object):
             trace.input = action.get('input')
             trace.output = result.get('output')
         elif trace_type == 'create':
+            trace.to_address = result.get('address')
+            trace.input = action.get('init')
+            trace.output = result.get('code')
+        elif trace_type == 'create2':
             trace.to_address = result.get('address')
             trace.input = action.get('init')
             trace.output = result.get('code')
