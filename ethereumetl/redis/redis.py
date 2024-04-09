@@ -1,6 +1,7 @@
 import os
-import redis
 import hashlib
+import redis
+from redis.lock import Lock
 from ethereumetl.constants import constants
 
 class RedisConnector:
@@ -14,10 +15,12 @@ class RedisConnector:
         self.redis_client = redis.StrictRedis(host=redis_host, port=redis_port, db=redis_database)
 
     def exists_in_set(self, key, value):
-        return self.redis_client.exists(self.create_key(key, value))
+        with Lock(self.redis_client, key):
+            return self.redis_client.exists(self.create_key(key, value))
     
     def add_to_set(self, key, value):
-        return self.redis_client.setex(self.create_key(key, value), self.ttl, '1')
+        with Lock(self.redis_client, key):
+            return self.redis_client.setex(self.create_key(key, value), self.ttl, '1')
     
     def create_key(self, key, value):
         hashed_data = hashlib.sha1(f"{key}_{value}".encode()).hexdigest()
