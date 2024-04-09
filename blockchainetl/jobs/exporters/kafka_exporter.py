@@ -7,17 +7,17 @@ import os
 from kafka import KafkaProducer
 
 from blockchainetl.jobs.exporters.converters.composite_item_converter import CompositeItemConverter
+from blockchainetl.streaming.clickhouse import Clickhouse
 from ethereumetl.redis.redis import RedisConnector
-from ethereumetl.constants import constants
 
 class KafkaItemExporter:
 
     def __init__(self, item_type_to_topic_mapping, converters=()):
         self.item_type_to_topic_mapping = item_type_to_topic_mapping
         self.converter = CompositeItemConverter(converters)
-        self.sync_mode = os.environ['SYNC_MODE']
         
         self.redis = RedisConnector()
+        # self.clickhouse_db = Clickhouse()
    
         self.connection_url = self.get_connection_url()
         self.producer = KafkaProducer(
@@ -27,7 +27,7 @@ class KafkaItemExporter:
             sasl_plain_username=os.getenv('KAFKA_SCRAM_USERID'),
             sasl_plain_password=os.getenv('KAFKA_SCRAM_PASSWORD'),
             client_id=socket.gethostname(),
-            compression_type='lz4',
+            compression_type=os.environ.get('KAFKA_COMPRESSION', 'lz4'),
             request_timeout_ms= 60000,
             max_block_ms= 120000,
             buffer_memory= 100000000)
@@ -72,30 +72,11 @@ class KafkaItemExporter:
 
     # utility function to set message as processed in Redis
     def mark_processed(self, item_type, item_id):
-        if self.sync_mode == constants.SYNC_MODE_LIVE:
-            return self.redis.add_to_set(item_type, item_id)
-        elif self.sync_mode == constants.SYNC_MODE_BACKFILL:
-            return self.redis.add_to_bf(item_type, item_id)
+        return self.redis.add_to_set(item_type, item_id)
 
     # utility functions to check message was already processed or not
     def already_processed(self, item_type, item_id):
-        if self.sync_mode == constants.SYNC_MODE_LIVE:
-            return self.already_processed_live(item_type, item_id)
-        elif self.sync_mode == constants.SYNC_MODE_BACKFILL:
-            return self.already_processed_backfill(item_type, item_id)
-    
-    def already_processed_live(self, item_type, item_id):
         return self.redis.exists_in_set(item_type, item_id)
-    
-    def already_processed_backfill(self, item_type, item_id):
-        exist_in_bf = self.redis.exists_in_bf(item_type, item_id)
-            
-        if exist_in_bf:
-            # TODO: check in CH
-            return exist_in_bf
-        
-        return exist_in_bf
-
     
 def group_by_item_type(items):
     result = collections.defaultdict(list)

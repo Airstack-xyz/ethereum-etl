@@ -65,29 +65,10 @@ def stream(last_synced_block_file, lag, output, start_block, end_block, entity_t
 
     from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
     from blockchainetl.streaming.streamer import Streamer
-
-    if os.environ['BLOCKCHAIN'] == None:
-        raise ValueError('BLOCKCHAIN env is missing')
     
+    check_required_envs()
     provider_uri = os.environ['PROVIDER_URI']
-    if provider_uri == None:
-        raise ValueError('PROVIDER_URI env is missing')
-    
-    if os.environ['KAFKA_BROKER_URI'] == None:
-        raise ValueError('KAFKA_BROKER_URI env is missing')
-    
-    if os.environ['REDIS_HOST'] == None:
-        raise ValueError('REDIS_HOST env is missing')
-    
-    if os.environ['REDIS_PORT'] == None:
-        raise ValueError('REDIS_PORT env is missing')
-    
-    if os.environ['REDIS_DB'] == None:
-        raise ValueError('REDIS_DB env is missing')
-    
-    if os.environ['REDIS_LIVE_MESSAGE_TTL'] == None:
-        raise ValueError('REDIS_LIVE_MESSAGE_TTL env is missing')
-    
+
     if mode == constants.RUN_MODE_CORRECTION:
         blocks_to_reprocess = [int(block) for block in blocks_to_reprocess.split(',')]
         logging.info('blocks_to_reprocess: {} with length: {}'.format(blocks_to_reprocess, len(blocks_to_reprocess)))
@@ -119,9 +100,17 @@ def stream(last_synced_block_file, lag, output, start_block, end_block, entity_t
     streamer.stream()
 
 
-def parse_entity_types(entity_types):
-    entity_types = [c.strip() for c in entity_types.split(',')]
+def check_required_envs():
+    for env in constants.REQUIRED_ENVS:
+        if os.environ[env] == None:
+            raise ValueError(f'{env} env is missing')
 
+
+def parse_entity_types(entity_types):
+    logging.info(f"------------------------ {entity_types}")
+    entity_types = [c.strip() for c in entity_types.split(',')]
+    logging.info(f"------------------------ {entity_types}")
+    
     # validate passed types
     for entity_type in entity_types:
         if entity_type not in EntityType.ALL_FOR_STREAMING:

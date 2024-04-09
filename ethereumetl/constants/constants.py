@@ -43,11 +43,23 @@ RUN_MODE_CORRECTION = 'correction'
 RUN_MODE_NORMAL= 'normal'
 
 # variables for deduplication
-SYNC_MODE_LIVE = 'live'
-SYNC_MODE_BACKFILL = 'backfill'
-
-VALID_SYNC_MODES = [SYNC_MODE_LIVE, SYNC_MODE_BACKFILL]
-
-REDIS_BACKFILL_MODE_PREFIX = 'bf'
-REDIS_LIVE_MODE_PREFIX = 'live'
+REDIS_PREFIX = 'etl'
 METRICS_PORT = '9000'
+
+REQUIRED_ENVS = [
+    # envs for kafka integration
+    'BLOCKCHAIN',
+    'PROVIDER_URI',
+    'KAFKA_BROKER_URI',
+    
+    # envs for deduplication support
+    'REDIS_HOST',
+    'REDIS_PORT',
+    'REDIS_DB',
+    'REDIS_MESSAGE_TTL',
+    'CLICKHOUSE_HOST',
+    'CLICKHOUSE_PORT',
+    'CLICKHOUSE_USERNAME',
+    'CLICKHOUSE_PASSWORD',
+    'CLICKHOUSE_DATABASE'
+]

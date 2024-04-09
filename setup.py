@@ -57,8 +57,8 @@ setup(
             # Later versions break the build in Travis CI for Python 3.7.2
             'grpcio==1.46.3',
             'redis==3.5.3',
-            'redisbloom==0.4.1',
-            'prometheus-client==0.20.0'
+            'prometheus-client==0.20.0',
+            'clickhouse-connect==0.6.14'
         ],
         'streaming-kinesis': [
             'boto3==1.24.11',
