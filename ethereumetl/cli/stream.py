@@ -107,9 +107,7 @@ def check_required_envs():
 
 
 def parse_entity_types(entity_types):
-    logging.info(f"------------------------ {entity_types}")
     entity_types = [c.strip() for c in entity_types.split(',')]
-    logging.info(f"------------------------ {entity_types}")
     
     # validate passed types
     for entity_type in entity_types:
