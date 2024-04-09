@@ -18,7 +18,7 @@ class KafkaItemExporter:
         self.converter = CompositeItemConverter(converters)
         
         self.redis = RedisConnector()
-        self.clickhouse_db = Clickhouse()
+        # self.clickhouse_db = Clickhouse()
    
         self.connection_url = self.get_connection_url()
         self.producer = KafkaProducer(
@@ -45,7 +45,7 @@ class KafkaItemExporter:
     def export_items(self, items):
         check_in_cache = True
         
-        if os.environ['OVERRIDE_CHECK_ALL_IN_CACHE'] == None:
+        if os.environ.get('OVERRIDE_CHECK_ALL_IN_CACHE') == None:
             items, had_older_records = filter_records(items)            
             check_in_cache = not had_older_records
         
