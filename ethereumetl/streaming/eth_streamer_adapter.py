@@ -106,8 +106,8 @@ class EthStreamerAdapter:
             sort_by(enriched_geth_traces, ('block_number', 'trace_index')) + \
             sort_by(enriched_contracts, ('block_number',)) + \
             sort_by(enriched_tokens, ('block_number',)) + \
-            sort_by(enriched_blocks, 'number') + \
-            sort_by(enriched_transactions, ('block_number', 'transaction_index'))
+            sort_by(enriched_transactions, ('block_number', 'transaction_index')) + \
+            sort_by(enriched_blocks, 'number')
 
         self.calculate_item_ids(all_items)
         #self.calculate_item_timestamps(all_items)
