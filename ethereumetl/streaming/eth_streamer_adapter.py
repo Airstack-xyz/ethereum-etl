@@ -1,7 +1,9 @@
 import logging
+import os
 
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
+from ethereumetl.deduplication.clickhouse import Clickhouse
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.jobs.export_blocks_job import ExportBlocksJob
 from ethereumetl.jobs.export_receipts_job import ExportReceiptsJob
@@ -18,6 +20,7 @@ from ethereumetl.streaming.eth_item_timestamp_calculator import EthItemTimestamp
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
 from ethereumetl.web3_utils import build_web3
 from ethereumetl.providers.auto import get_provider_from_uri
+from ethereumetl.deduplication.deduplicate import deduplicate_records
 
 
 class EthStreamerAdapter:
@@ -33,6 +36,11 @@ class EthStreamerAdapter:
         self.batch_size = batch_size
         self.max_workers = max_workers
         self.entity_types = entity_types
+        
+        self.clickhouse_db = None
+        if os.environ.get('ENABLE_DEDUPLICATION') != None:
+            self.clickhouse_db = Clickhouse()
+        
         self.item_id_calculator = EthItemIdCalculator()
         self.item_timestamp_calculator = EthItemTimestampCalculator()
 
@@ -98,6 +106,18 @@ class EthStreamerAdapter:
             if EntityType.TOKEN in self.entity_types else []
 
         logging.info('Exporting with ' + type(self.item_exporter).__name__)
+        
+        if os.environ.get('ENABLE_DEDUPLICATION') != None:
+            deduplicate_records([
+                (enriched_logs, 'block_number',)
+                (enriched_token_transfers, 'block_number')
+                (enriched_traces, 'block_number')
+                (enriched_geth_traces, 'block_number')
+                (enriched_contracts, 'block_number')
+                (enriched_tokens, 'block_number')
+                (enriched_transactions, 'block_number')
+                (enriched_blocks, 'number')
+            ])
 
         all_items = \
             sort_by(enriched_logs, ('block_number', 'log_index')) + \

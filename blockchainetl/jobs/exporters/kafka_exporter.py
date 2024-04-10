@@ -8,18 +8,15 @@ from kafka import KafkaProducer
 
 from blockchainetl.jobs.exporters.converters.composite_item_converter import CompositeItemConverter
 from blockchainetl.jobs.utils.utils import filter_records
-from blockchainetl.streaming.clickhouse import Clickhouse
-from ethereumetl.redis.redis import RedisConnector
+from ethereumetl.deduplication.redis import RedisConnector
 
 class KafkaItemExporter:
 
     def __init__(self, item_type_to_topic_mapping, converters=()):
         self.item_type_to_topic_mapping = item_type_to_topic_mapping
         self.converter = CompositeItemConverter(converters)
-        
         self.redis = RedisConnector()
-        # self.clickhouse_db = Clickhouse()
-   
+           
         self.connection_url = self.get_connection_url()
         self.producer = KafkaProducer(
             bootstrap_servers=self.connection_url,
