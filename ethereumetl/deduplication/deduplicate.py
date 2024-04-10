@@ -15,6 +15,7 @@ def deduplicate_records(records, ts_key, db):
     min_ts = get_minimum_ts(records, ts_key)
     if is_ts_older(min_ts, ch_fallback_days):
         records = asyncio.run(filter_records(records, ts_key, min_ts, db))
+    return records
 
 def is_ts_older(ts, days):
     difference = datetime.utcnow() - datetime.utcfromtimestamp(ts)
