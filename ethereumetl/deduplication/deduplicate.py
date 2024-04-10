@@ -39,16 +39,20 @@ async def filter_records(items, ts_key, min_ts_epoch, db):
     min_ts = datetime.utcfromtimestamp(min_ts_epoch).strftime('%Y-%m-%d')
     
     # extract all ids
-    ids = [obj["id"] for obj in items]
+    ids = list([obj["id"] for obj in items])
+    ids_from_db = []
     
-    parameters = { 'table': table_name, 'ids': ids, 'timestamp_key': ts_key, 'block_timestamp': min_ts }
-    
+    parameters = { 'table': table_name, 'ids': [], 'timestamp_key': ts_key, 'block_timestamp': min_ts }
     query = '''SELECT id FROM {table:Identifier} WHERE id IN {ids:Array(String)} and {timestamp_key:Identifier} >= {block_timestamp:String}'''
-    logging.info(f'CH Query Params: {parameters}')
     
-    db_results = await db.run_query(query, parameters)
+    chunk_size = int(os.environ.get('CLICKHOUSE_QUERY_CHUNK_SIZE', constants.CLICKHOUSE_QUERY_CHUNK_SIZE))
+    for i in range(0, len(ids), chunk_size):
+        chunk = ids[i:i + chunk_size]
+        parameters['ids'] = chunk
+        
+        db_results = await db.run_query(query, parameters)
+        ids_from_db = ids_from_db + [t[0] for t in db_results]
     
-    ids_from_db = [t[0] for t in db_results]    
     return [item for item in items if item['id'] not in ids_from_db]
 
 def get_table_name(message_type):
