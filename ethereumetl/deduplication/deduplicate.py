@@ -44,6 +44,7 @@ async def filter_records(items, ts_key, min_ts_epoch, db):
     parameters = { 'table': table_name, 'ids': ids, 'timestamp_key': ts_key, 'block_timestamp': min_ts }
     
     query = '''SELECT id FROM {table:Identifier} WHERE id IN {ids:Array(String)} and {timestamp_key:Identifier} >= {block_timestamp:String}'''
+    logging.info(f'CH Query Params: {parameters}')
     
     db_results = await db.run_query(query, parameters)
     
