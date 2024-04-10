@@ -88,36 +88,35 @@ class EthStreamerAdapter:
         if self._should_export(EntityType.TOKEN):
             tokens = self._extract_tokens(contracts)
 
-        enriched_blocks = blocks \
+        enriched_blocks = self.calculate_item_ids(blocks) \
             if EntityType.BLOCK in self.entity_types else []
-        enriched_transactions = enrich_transactions(transactions, receipts) \
+        enriched_transactions = self.calculate_item_ids(enrich_transactions(transactions, receipts)) \
             if EntityType.TRANSACTION in self.entity_types else []
-        enriched_logs = enrich_logs(blocks, logs) \
+        enriched_logs = self.calculate_item_ids(enrich_logs(blocks, logs)) \
             if EntityType.LOG in self.entity_types else []
-        enriched_token_transfers = enrich_token_transfers(blocks, token_transfers) \
+        enriched_token_transfers = self.calculate_item_ids(enrich_token_transfers(blocks, token_transfers)) \
             if EntityType.TOKEN_TRANSFER in self.entity_types else []
-        enriched_traces = enrich_traces(blocks, traces) \
+        enriched_traces = self.calculate_item_ids(enrich_traces(blocks, traces)) \
             if EntityType.TRACE in self.entity_types else []
-        enriched_geth_traces = enrich_geth_traces(blocks, geth_traces) \
+        enriched_geth_traces = self.calculate_item_ids(enrich_geth_traces(blocks, geth_traces)) \
             if EntityType.GETH_TRACE in self.entity_types else []
-        enriched_contracts = enrich_contracts(blocks, contracts) \
+        enriched_contracts = self.calculate_item_ids(enrich_contracts(blocks, contracts)) \
             if EntityType.CONTRACT in self.entity_types else []
-        enriched_tokens = enrich_tokens(blocks, tokens) \
+        enriched_tokens = self.calculate_item_ids(enrich_tokens(blocks, tokens)) \
             if EntityType.TOKEN in self.entity_types else []
 
         logging.info('Exporting with ' + type(self.item_exporter).__name__)
         
         if os.environ.get('ENABLE_DEDUPLICATION') != None:
-            deduplicate_records([
-                (enriched_logs, 'block_number',)
-                (enriched_token_transfers, 'block_number')
-                (enriched_traces, 'block_number')
-                (enriched_geth_traces, 'block_number')
-                (enriched_contracts, 'block_number')
-                (enriched_tokens, 'block_number')
-                (enriched_transactions, 'block_number')
-                (enriched_blocks, 'number')
-            ])
+            # TODO: improve this code
+            enriched_logs = deduplicate_records(enriched_logs, 'block_timestamp', self.clickhouse_db)
+            enriched_token_transfers = deduplicate_records(enriched_token_transfers, 'block_timestamp', self.clickhouse_db)
+            enriched_traces = deduplicate_records(enriched_traces, 'block_timestamp', self.clickhouse_db)
+            enriched_geth_traces = deduplicate_records(enriched_geth_traces, 'block_timestamp', self.clickhouse_db)
+            enriched_contracts = deduplicate_records(enriched_contracts, 'block_timestamp', self.clickhouse_db)
+            enriched_tokens = deduplicate_records(enriched_tokens, 'block_timestamp', self.clickhouse_db)
+            enriched_transactions = deduplicate_records(enriched_transactions, 'block_timestamp', self.clickhouse_db)
+            enriched_blocks = deduplicate_records(enriched_blocks, 'timestamp', self.clickhouse_db)
 
         all_items = \
             sort_by(enriched_logs, ('block_number', 'log_index')) + \
@@ -129,7 +128,6 @@ class EthStreamerAdapter:
             sort_by(enriched_transactions, ('block_number', 'transaction_index')) + \
             sort_by(enriched_blocks, 'number')
 
-        self.calculate_item_ids(all_items)
         #self.calculate_item_timestamps(all_items)
 
         self.item_exporter.export_items(all_items)
@@ -273,6 +271,7 @@ class EthStreamerAdapter:
     def calculate_item_ids(self, items):
         for item in items:
             item['id'] = self.item_id_calculator.calculate(item)
+        return items
 
     def calculate_item_timestamps(self, items):
         for item in items:

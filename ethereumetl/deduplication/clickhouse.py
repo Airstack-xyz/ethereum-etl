@@ -23,11 +23,11 @@ class Clickhouse:
         self._username = os.environ['CLICKHOUSE_USERNAME']
         self._password = os.environ['CLICKHOUSE_PASSWORD']
         self._database = os.environ['CLICKHOUSE_DATABASE']
-   
+        
         logging.debug(
             f'Making Connection to DB with host: {self._host}, port: {self._port}, database: {self._database}'
         )
-        self._connection = clickhouse_connect.get_client(host=self._host, port=self._port, 
+        self._connection = clickhouse_connect.get_client(host=self._host, port=self._port, secure=True,
                                                          username=self._username, password=self._password, database=self._database)        
 
 

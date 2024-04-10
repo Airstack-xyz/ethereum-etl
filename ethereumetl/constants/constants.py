@@ -45,7 +45,7 @@ RUN_MODE_NORMAL= 'normal'
 # variables for deduplication
 REDIS_PREFIX = 'etl'
 METRICS_PORT = '9000'
-CLICKHOUSE_FALLBACK_TS = '7'
+CLICKHOUSE_FALLBACK_TS = '1'
 
 REQUIRED_ENVS = [
     # envs for kafka integration

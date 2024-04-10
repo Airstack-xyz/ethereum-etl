@@ -7,7 +7,6 @@ import os
 from kafka import KafkaProducer
 
 from blockchainetl.jobs.exporters.converters.composite_item_converter import CompositeItemConverter
-from blockchainetl.jobs.utils.utils import filter_records
 from ethereumetl.deduplication.redis import RedisConnector
 
 class KafkaItemExporter:
@@ -39,17 +38,11 @@ class KafkaItemExporter:
     def open(self):
         pass
 
-    def export_items(self, items):
-        check_in_cache = True
-        
-        if os.environ.get('OVERRIDE_CHECK_ALL_IN_CACHE') == None:
-            items, had_older_records = filter_records(items)            
-            check_in_cache = not had_older_records
-        
+    def export_items(self, items):        
         for item in items:
-            self.export_item(item, check_in_cache)
+            self.export_item(item)
 
-    def export_item(self, item, check_in_cache):
+    def export_item(self, item):
         item_type = item.get('type')
         item_id = item.get('id')
         
@@ -57,10 +50,7 @@ class KafkaItemExporter:
             item_type = self.item_type_to_topic_mapping[item_type]
             data = json.dumps(item).encode('utf-8')
             
-            if not check_in_cache:
-                logging.info(f'Processing message of Type=[{item_type}]; Id=[{item_id}]')
-                return self.producer.send(item_type, value=data)
-            elif not self.already_processed(item_type, item_id):
+            if not self.already_processed(item_type, item_id):
                 logging.info(f'Processing message of Type=[{item_type}]; Id=[{item_id}]')
                 self.mark_processed(item_type, item_id)
                 return self.producer.send(item_type, value=data)
