@@ -14,14 +14,14 @@ def deduplicate_records(records, ts_key, db):
     
     min_ts = get_minimum_ts(records, ts_key)
     if is_ts_older(min_ts, ch_fallback_days):
-        records = asyncio.run(filter_records(records, ts_key, min_ts, db))
+        records = asyncio.run(filter_records(records, min_ts, db))
     return records
 
 def is_ts_older(ts, days):
     difference = datetime.utcnow() - datetime.utcfromtimestamp(ts)
     return difference.days > days    
 
-async def filter_records(items, ts_key, min_ts_epoch, db):
+async def filter_records(items, min_ts_epoch, db):
     if items == None or len(items) == 0:
         return items
     
@@ -33,6 +33,7 @@ async def filter_records(items, ts_key, min_ts_epoch, db):
         return items
     
     table_name = get_table_name(message_type)
+    ts_column_name = get_table_ts_column_name(message_type)
     if table_name == None:
         logging.warn(f'Ignoring check for deduplication for type {message_type} as table not found')
         return items
@@ -43,7 +44,7 @@ async def filter_records(items, ts_key, min_ts_epoch, db):
     ids = list([obj["id"] for obj in items])
     ids_from_db = []
     
-    parameters = { 'table': table_name, 'ids': [], 'timestamp_key': ts_key, 'block_timestamp': min_ts }
+    parameters = { 'table': table_name, 'ids': [], 'timestamp_key': ts_column_name, 'block_timestamp': min_ts }
     query = '''SELECT id FROM {table:Identifier} WHERE id IN {ids:Array(String)} and {timestamp_key:Identifier} >= {block_timestamp:String}'''
     
     chunk_size = int(os.environ.get('CLICKHOUSE_QUERY_CHUNK_SIZE', constants.CLICKHOUSE_QUERY_CHUNK_SIZE))
@@ -73,6 +74,14 @@ def get_table_name(message_type):
         return 'contracts'
     elif message_type == EntityType.TOKEN:
         return 'tokens'
+
+def get_table_ts_column_name(message_type):
+    if message_type == EntityType.BLOCK:
+        return 'timestamp'
+    elif message_type == EntityType.TOKEN:
+        return 'created_block_timestamp'
+    
+    return 'block_timestamp'
     
 def get_minimum_ts(items, key):
     # get timestamp of oldest message from items list
