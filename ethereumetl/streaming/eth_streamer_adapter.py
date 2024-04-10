@@ -107,7 +107,7 @@ class EthStreamerAdapter:
 
         logging.info('Exporting with ' + type(self.item_exporter).__name__)
         
-        if os.environ.get('ENABLE_DEDUPLICATION') != None:
+        if os.environ.get('ENABLE_DEDUPLICATION') != None and os.environ.get('OVERRIDE_CHECK_ALL_IN_CACHE') == None:
             # TODO: improve this code
             enriched_logs = deduplicate_records(enriched_logs, 'block_timestamp', self.clickhouse_db)
             enriched_token_transfers = deduplicate_records(enriched_token_transfers, 'block_timestamp', self.clickhouse_db)
