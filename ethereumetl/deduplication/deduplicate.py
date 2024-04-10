@@ -7,7 +7,7 @@ from ethereumetl.constants import constants
 from ethereumetl.enumeration.entity_type import EntityType
 
 def deduplicate_records(records, ts_key, db):
-    ch_fallback_days = int(os.environ.get('CLICKHOUSE_FALLBACK_TS', constants.CLICKHOUSE_FALLBACK_TS))
+    ch_fallback_days = int(os.environ.get('CLICKHOUSE_FALLBACK_DAYS', constants.CLICKHOUSE_FALLBACK_DAYS))
     
     if records == None or len(records) == 0:
         return records
