@@ -2,9 +2,7 @@ import os
 import logging
 import asyncio
 from datetime import datetime
-
 from ethereumetl.constants import constants
-from ethereumetl.enumeration.entity_type import EntityType
 
 def deduplicate_records(records, ts_key, db):
     ch_fallback_days = int(os.environ.get('CLICKHOUSE_FALLBACK_DAYS', constants.CLICKHOUSE_FALLBACK_DAYS))
@@ -58,30 +56,10 @@ async def filter_records(items, min_ts_epoch, db):
     return [item for item in items if item['id'] not in ids_from_db]
 
 def get_table_name(message_type):
-    if message_type == EntityType.BLOCK:
-        return 'blocks'
-    elif message_type == EntityType.TRANSACTION:
-        return 'transactions'
-    elif message_type == EntityType.LOG:
-        return 'logs'
-    elif message_type == EntityType.TOKEN_TRANSFER:
-        return 'token_transfers'
-    elif message_type == EntityType.TRACE:
-        return 'traces'
-    elif message_type == EntityType.GETH_TRACE:
-        return 'traces'
-    elif message_type == EntityType.CONTRACT:
-        return 'contracts'
-    elif message_type == EntityType.TOKEN:
-        return 'tokens'
+    return constants.ENTITY_TO_TABLE_MAP.get(message_type)
 
 def get_table_ts_column_name(message_type):
-    if message_type == EntityType.BLOCK:
-        return 'timestamp'
-    elif message_type == EntityType.TOKEN:
-        return 'created_block_timestamp'
-    
-    return 'block_timestamp'
+    return constants.ENTITY_TO_TABLE_TS_COLUMNS_MAP.get(message_type)
     
 def get_minimum_ts(items, key):
     # get timestamp of oldest message from items list

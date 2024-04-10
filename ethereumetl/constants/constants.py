@@ -1,3 +1,4 @@
+from ethereumetl.enumeration.entity_type import EntityType
 
 TOKEN_TYPE_ERC20 = 'ERC20'
 TOKEN_TYPE_ERC721 = 'ERC721'
@@ -65,3 +66,25 @@ REQUIRED_ENVS = [
     'CLICKHOUSE_PASSWORD',
     'CLICKHOUSE_DATABASE'
 ]
+
+ENTITY_TO_TABLE_MAP = {
+    EntityType.BLOCK: 'blocks',
+    EntityType.TRANSACTION: 'transactions',
+    EntityType.LOG: 'logs',
+    EntityType.TOKEN_TRANSFER: 'token_transfers',
+    EntityType.TRACE: 'traces',
+    EntityType.GETH_TRACE: 'traces',
+    EntityType.CONTRACT: 'contracts',
+    EntityType.TOKEN: 'tokens',
+}
+
+ENTITY_TO_TABLE_TS_COLUMNS_MAP = {
+    EntityType.BLOCK: 'timestamp',
+    EntityType.TOKEN: 'created_block_timestamp',
+    EntityType.TRANSACTION: 'block_timestamp',
+    EntityType.LOG: 'block_timestamp',
+    EntityType.TOKEN_TRANSFER: 'block_timestamp',
+    EntityType.TRACE: 'block_timestamp',
+    EntityType.GETH_TRACE: 'block_timestamp',
+    EntityType.CONTRACT: 'block_timestamp',
+}
