@@ -63,8 +63,10 @@ class Streamer:
         self.prometheus_client = PrometheusConnector()
         
         if self.mode == constants.RUN_MODE_NORMAL:
-            if self.start_block is not None or not os.path.isfile(self.last_synced_block_file):
-                init_last_synced_block_file((self.start_block or 0) - 1, self.last_synced_block_file)
+            # if "start-block" is provided and "last_synced_block_file" is not present
+            # then write "start-block - 1" to "last_synced_block_file"
+            if (self.start_block is not None) and (not os.path.isfile(self.last_synced_block_file)):
+                write_last_synced_block(self.last_synced_block_file, self.start_block - 1)
 
             self.last_synced_block = read_last_synced_block(self.last_synced_block_file)
 
@@ -160,15 +162,6 @@ def delete_file(file):
 
 def write_last_synced_block(file, last_synced_block):
     write_to_file(file, str(last_synced_block) + '\n')
-
-
-def init_last_synced_block_file(start_block, last_synced_block_file):
-    if os.path.isfile(last_synced_block_file):
-        raise ValueError(
-            '{} should not exist if --start-block option is specified. '
-            'Either remove the {} file or the --start-block option.'
-                .format(last_synced_block_file, last_synced_block_file))
-    write_last_synced_block(last_synced_block_file, start_block)
 
 
 def read_last_synced_block(file):
