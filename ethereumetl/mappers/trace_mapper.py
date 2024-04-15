@@ -191,7 +191,7 @@ class EthTraceMapper(object):
             'transaction_index': trace.transaction_index,
             'from_address': trace.from_address,
             'to_address': trace.to_address,
-            'value': trace.value,
+            'value': str(trace.value) if trace.value != None else trace.value,
             'input': trace.input,
             'output': trace.output,
             'trace_type': trace.trace_type,
