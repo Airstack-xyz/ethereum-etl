@@ -14,8 +14,8 @@ class KafkaItemExporter:
     def __init__(self, item_type_to_topic_mapping, converters=()):
         self.item_type_to_topic_mapping = item_type_to_topic_mapping
         self.converter = CompositeItemConverter(converters)
-        self.redis = RedisConnector()
-           
+        self.enable_deduplication = (os.environ.get('ENABLE_DEDUPLICATION') != None)
+        
         self.connection_url = self.get_connection_url()
         self.producer = KafkaProducer(
             bootstrap_servers=self.connection_url,
@@ -28,6 +28,11 @@ class KafkaItemExporter:
             request_timeout_ms= 60000,
             max_block_ms= 120000,
             buffer_memory= 100000000)
+        
+        # use redis for deduplication of live messages  
+        self.redis = None
+        if self.enable_deduplication:
+            self.redis = RedisConnector()
 
     def get_connection_url(self):
         kafka_broker_uri = os.environ['KAFKA_BROKER_URI']
@@ -46,35 +51,50 @@ class KafkaItemExporter:
         item_type = item.get('type')
         item_id = item.get('id')
         
-        if item_id is not None and item_type is not None and item_type in self.item_type_to_topic_mapping:
-            item_type = self.item_type_to_topic_mapping[item_type]
-            data = json.dumps(item).encode('utf-8')
+        if ((item_id is None) or (item_type is None) or (item_type not in self.item_type_to_topic_mapping)):
+            logging.warning('Topic for item type "{}" is not configured.'.format(item_type))
+            return
+        
+        item_type = self.item_type_to_topic_mapping[item_type]
+        data = json.dumps(item).encode('utf-8')
             
+        if self.enable_deduplication:
             if not self.already_processed(item_type, item_id):
                 logging.info(f'Processing message of Type=[{item_type}]; Id=[{item_id}]')
                 self.mark_processed(item_type, item_id)
-                return self.producer.send(item_type, value=data)
-                
+                return self.produce_message(item_type, data)
             logging.info(f'Message was already processed skipping...  Type=[{item_type}]; Id=[{item_id}]')
         else:
-            logging.warning('Topic for item type "{}" is not configured.'.format(item_type))
+            return self.produce_message(item_type, data)
 
     def convert_items(self, items):
         for item in items:
             yield self.converter.convert_item(item)
 
     def close(self):
-        self.redis.close()
+        if self.redis != None:
+            self.redis.close()
         pass
 
     # utility function to set message as processed in Redis
     def mark_processed(self, item_type, item_id):
-        return self.redis.add_to_set(item_type, item_id)
+        if self.redis != None:
+            return self.redis.add_to_set(item_type, item_id)
+        return False
 
     # utility functions to check message was already processed or not
     def already_processed(self, item_type, item_id):
-        return self.redis.exists_in_set(item_type, item_id)
-    
+        if self.redis != None:
+            return self.redis.exists_in_set(item_type, item_id)
+        return False
+
+    # utility functions to produce message to kafka
+    def produce_message(self, item_type, data):
+        try:
+            return self.producer.send(item_type, value=data)
+        except Exception as e:
+            logging.error(f"Record marked as processed in Redis but unable to produce it to kafka - {item_type} - {data} - Exception=", e)
+              
 def group_by_item_type(items):
     result = collections.defaultdict(list)
     for item in items:

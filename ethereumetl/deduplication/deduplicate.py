@@ -36,11 +36,11 @@ async def filter_records(items, min_ts_epoch, db):
         return items
     
     table_name = get_table_name(message_type)
-    ts_column_name = get_table_ts_column_name(message_type)
     if table_name == None:
-        logging.warn(f'Ignoring check for deduplication for type {message_type} as table not found')
-        return items
+        logging.error(f'Ignoring check for deduplication for type {message_type} as table not found')
+        os._exit(1)
     
+    ts_column_name = get_table_ts_column_name(message_type)
     min_ts = datetime.utcfromtimestamp(min_ts_epoch).strftime('%Y-%m-%d')
     
     # extract all ids
