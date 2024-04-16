@@ -45,7 +45,7 @@ async def filter_records(items, min_ts_epoch, db):
     
     # extract all ids
     ids = list([obj["id"] for obj in items])
-    ids_from_db = []
+    ids_from_db = {}
     
     parameters = { 'table': table_name, 'ids': [], 'timestamp_key': ts_column_name, 'block_timestamp': min_ts }
     query = '''SELECT id FROM {table:Identifier} WHERE id IN {ids:Array(String)} and {timestamp_key:Identifier} >= {block_timestamp:String}'''
@@ -56,7 +56,7 @@ async def filter_records(items, min_ts_epoch, db):
         parameters['ids'] = chunk
         
         db_results = await db.run_query(query, parameters)
-        ids_from_db = ids_from_db + [t[0] for t in db_results]
+        ids_from_db.update({t[0]: True for t in db_results})
     
     return [item for item in items if item['id'] not in ids_from_db]
 
