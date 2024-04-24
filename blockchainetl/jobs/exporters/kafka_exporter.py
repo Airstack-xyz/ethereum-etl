@@ -8,6 +8,7 @@ from kafka import KafkaProducer
 
 from blockchainetl.jobs.exporters.converters.composite_item_converter import CompositeItemConverter
 from ethereumetl.deduplication.redis import RedisConnector
+from ethereumetl.utils import convert_numeric_to_string
 
 class KafkaItemExporter:
 
@@ -56,7 +57,7 @@ class KafkaItemExporter:
             return
         
         item_type = self.item_type_to_topic_mapping[item_type]
-        data = json.dumps(item).encode('utf-8')
+        data = self.parse_data(item)
             
         if self.enable_deduplication:
             if not self.already_processed(item_type, item_id):
@@ -94,6 +95,11 @@ class KafkaItemExporter:
             return self.producer.send(item_type, value=data)
         except Exception as e:
             logging.error(f"Record marked as processed in Redis but unable to produce it to kafka - {item_type} - {data} - Exception=", e)
+        
+    # utility functions to convert numeric data to string format
+    def parse_data(self, item):
+        data = convert_numeric_to_string(item)
+        return json.dumps(data).encode('utf-8')
               
 def group_by_item_type(items):
     result = collections.defaultdict(list)
