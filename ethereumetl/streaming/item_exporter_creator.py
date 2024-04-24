@@ -30,7 +30,7 @@ def create_item_exporters(outputs):
         split_outputs = [output.strip() for output in outputs.split(',')] if outputs else ['console']
     else:
         split_outputs = [outputs]
-
+    
     item_exporters = [create_item_exporter(output) for output in split_outputs]
     return MultiItemExporter(item_exporters)
 
@@ -66,7 +66,11 @@ def create_item_exporter(output):
         from blockchainetl.jobs.exporters.converters.unix_timestamp_item_converter import UnixTimestampItemConverter
         from blockchainetl.jobs.exporters.converters.int_to_decimal_item_converter import IntToDecimalItemConverter
         from blockchainetl.jobs.exporters.converters.list_field_item_converter import ListFieldItemConverter
+        from blockchainetl.jobs.exporters.converters.simple_item_converter import SimpleItemConverter
         from ethereumetl.streaming.postgres_tables import BLOCKS, TRANSACTIONS, LOGS, TOKEN_TRANSFERS, TRACES, TOKENS, CONTRACTS
+
+        def array_to_str(val):
+            return ','.join(val) if val is not None else None
 
         item_exporter = PostgresItemExporter(
             output, item_type_to_insert_stmt_mapping={
@@ -78,8 +82,12 @@ def create_item_exporter(output):
                 'token': create_insert_statement_for_table(TOKENS),
                 'contract': create_insert_statement_for_table(CONTRACTS),
             },
-            converters=[UnixTimestampItemConverter(), IntToDecimalItemConverter(),
-                        ListFieldItemConverter('topics', 'topic', fill=4)])
+            converters=[
+                UnixTimestampItemConverter(),
+                IntToDecimalItemConverter(),
+                ListFieldItemConverter('topics', 'topic', fill=4),
+                SimpleItemConverter(field_converters={'blob_versioned_hashes': array_to_str})
+            ])
     elif item_exporter_type == ItemExporterType.GCS:
         from blockchainetl.jobs.exporters.gcs_item_exporter import GcsItemExporter
         bucket, path = get_bucket_and_path_from_gcs_output(output)
@@ -89,7 +97,7 @@ def create_item_exporter(output):
     elif item_exporter_type == ItemExporterType.KAFKA:
         from blockchainetl.jobs.exporters.kafka_exporter import KafkaItemExporter
         blockchain = os.environ['BLOCKCHAIN']
-        item_exporter = KafkaItemExporter( item_type_to_topic_mapping={
+        item_exporter = KafkaItemExporter(item_type_to_topic_mapping={
             'block': blockchain + '_blocks',
             'transaction': blockchain + '_transactions',
             'log': blockchain + '_logs',
