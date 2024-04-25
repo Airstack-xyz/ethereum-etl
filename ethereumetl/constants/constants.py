@@ -75,12 +75,12 @@ ENTITY_TO_TABLE_MAP = {
     EntityType.TRACE: 'traces',
     EntityType.GETH_TRACE: 'traces',
     EntityType.CONTRACT: 'contracts',
-    EntityType.TOKEN: 'tokens',
+    EntityType.TOKEN: 'enriched_contracts',
 }
 
 ENTITY_TO_TABLE_TS_COLUMNS_MAP = {
     EntityType.BLOCK: 'timestamp',
-    EntityType.TOKEN: 'created_block_timestamp',
+    EntityType.TOKEN: 'block_timestamp',
     EntityType.TRANSACTION: 'block_timestamp',
     EntityType.LOG: 'block_timestamp',
     EntityType.TOKEN_TRANSFER: 'block_timestamp',
