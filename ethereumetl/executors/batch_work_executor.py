@@ -106,7 +106,7 @@ def execute_with_retries(func, *args, max_retries=5, retry_exceptions=RETRY_EXCE
             logging.exception('An exception occurred while executing execute_with_retries. Retry #{}'.format(i))
             if i < max_retries - 1:
                 logging.info('The request will be retried after {} seconds. Retry #{}'.format(sleep_seconds, i))
-                time.sleep(sleep_seconds)
+                # time.sleep(sleep_seconds)
                 continue
             else:
                 raise

@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 import json
+import logging
 
 from ethereumetl.executors.batch_work_executor import BatchWorkExecutor
 from ethereumetl.json_rpc_requests import generate_trace_block_by_number_json_rpc
@@ -65,6 +66,7 @@ class ExportGethTracesJob(BaseJob):
         trace_block_rpc = list(generate_trace_block_by_number_json_rpc(block_number_batch))
         if len(trace_block_rpc) == 0:
             return
+        logging.info('TEST trace_block_rpc={}'.format(trace_block_rpc))
         response = self.batch_web3_provider.make_batch_request(json.dumps(trace_block_rpc))
 
         for response_item in response:

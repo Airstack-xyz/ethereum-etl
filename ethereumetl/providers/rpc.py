@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import logging
 
 from web3 import HTTPProvider
 from web3._utils.request import make_post_request
@@ -30,6 +31,7 @@ from web3._utils.request import make_post_request
 class BatchHTTPProvider(HTTPProvider):
 
     def make_batch_request(self, text):
+        logging.info("Making request HTTP. URI: %s, Request: %s",self.endpoint_uri, text)
         self.logger.debug("Making request HTTP. URI: %s, Request: %s",
                           self.endpoint_uri, text)
         request_data = text.encode('utf-8')
@@ -39,6 +41,7 @@ class BatchHTTPProvider(HTTPProvider):
             **self.get_request_kwargs()
         )
         response = self.decode_rpc_response(raw_response)
+        logging.info("Getting response HTTP. URI: %s, Request: %s, Response: %s", self.endpoint_uri, text, response)
         self.logger.debug("Getting response HTTP. URI: %s, "
                           "Request: %s, Response: %s",
                           self.endpoint_uri, text, response)
