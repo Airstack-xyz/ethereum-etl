@@ -62,8 +62,9 @@ class KafkaItemExporter:
         if self.enable_deduplication:
             if not self.already_processed(item_type, item_id):
                 logging.info(f'Processing message of Type=[{item_type}]; Id=[{item_id}]')
+                output = self.produce_message(item_type, data)
                 self.mark_processed(item_type, item_id)
-                return self.produce_message(item_type, data)
+                return output
             logging.info(f'Message was already processed skipping...  Type=[{item_type}]; Id=[{item_id}]')
         else:
             return self.produce_message(item_type, data)
