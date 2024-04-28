@@ -92,10 +92,7 @@ class KafkaItemExporter:
 
     # utility functions to produce message to kafka
     def produce_message(self, item_type, data):
-        try:
-            return self.producer.send(item_type, value=data)
-        except Exception as e:
-            logging.error(f"Record marked as processed in Redis but unable to produce it to kafka - {item_type} - {data} - Exception=", e)
+        return self.producer.send(item_type, value=data)
     
     # utility functions to convert numeric data to string format
     def parse_data(self, item):
