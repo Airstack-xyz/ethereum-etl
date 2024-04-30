@@ -28,7 +28,10 @@ class KafkaItemExporter:
             compression_type=os.environ.get('KAFKA_COMPRESSION', 'lz4'),
             request_timeout_ms= 60000,
             max_block_ms= 120000,
-            buffer_memory= 100000000)
+            buffer_memory= 100000000,
+            retries=5,
+            batch_size=32768,
+            linger_ms=1)
         
         # use redis for deduplication of live messages  
         self.redis = None
@@ -44,9 +47,17 @@ class KafkaItemExporter:
     def open(self):
         pass
 
-    def export_items(self, items):        
+    def export_items(self, items):
+        futures = []       
         for item in items:
-            self.export_item(item)
+            futures.append(self.export_item(item))
+
+        # wait for all messages to be sent
+        for future in futures:
+            try:
+                future.get(timeout=10)
+            except Exception as e:
+                logging.error(f'Failed to send message: {e}')
 
     def export_item(self, item):
         item_type = item.get('type')
