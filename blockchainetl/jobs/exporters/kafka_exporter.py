@@ -58,6 +58,7 @@ class KafkaItemExporter:
                 future.get(timeout=10)
             except Exception as e:
                 logging.error(f'Failed to send message: {e}')
+                raise e
 
     def export_item(self, item):
         item_type = item.get('type')
