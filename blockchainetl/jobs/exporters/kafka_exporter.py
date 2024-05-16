@@ -10,13 +10,14 @@ from blockchainetl.jobs.exporters.converters.composite_item_converter import Com
 from ethereumetl.deduplication.redis import RedisConnector
 from ethereumetl.utils import convert_numeric_to_string
 
+
 class KafkaItemExporter:
 
     def __init__(self, item_type_to_topic_mapping, converters=()):
         self.item_type_to_topic_mapping = item_type_to_topic_mapping
         self.converter = CompositeItemConverter(converters)
         self.enable_deduplication = (os.environ.get('ENABLE_DEDUPLICATION') != None)
-        
+
         self.connection_url = self.get_connection_url()
         self.producer = KafkaProducer(
             bootstrap_servers=self.connection_url,
@@ -26,13 +27,13 @@ class KafkaItemExporter:
             sasl_plain_password=os.getenv('KAFKA_SCRAM_PASSWORD'),
             client_id=socket.gethostname(),
             compression_type=os.environ.get('KAFKA_COMPRESSION', 'lz4'),
-            request_timeout_ms= 60000,
-            max_block_ms= 120000,
-            buffer_memory= 100000000,
+            request_timeout_ms=60000,
+            max_block_ms=120000,
+            buffer_memory=100000000,
             retries=5,
             batch_size=32768,
             linger_ms=1)
-        
+
         # use redis for deduplication of live messages  
         self.redis = None
         if self.enable_deduplication:
@@ -43,12 +44,12 @@ class KafkaItemExporter:
         if kafka_broker_uri is None:
             raise Exception('KAFKA_BROKER_URI is not set')
         return kafka_broker_uri.split(',')
-    
+
     def open(self):
         pass
 
     def export_items(self, items):
-        futures = []       
+        futures = []
         for item in items:
             futures.append(self.export_item(item))
 
@@ -62,14 +63,17 @@ class KafkaItemExporter:
     def export_item(self, item):
         item_type = item.get('type')
         item_id = item.get('id')
-        
+
+        if item_type == 'receipt':  # todo: fix this workaround
+            item_id = f'receipt_{item.get("transaction_hash")}'
+
         if ((item_id is None) or (item_type is None) or (item_type not in self.item_type_to_topic_mapping)):
             logging.warning('Topic for item type "{}" is not configured.'.format(item_type))
             return
-        
+
         item_type = self.item_type_to_topic_mapping[item_type]
         data = self.parse_data(item)
-            
+
         if self.enable_deduplication:
             if not self.already_processed(item_type, item_id):
                 # logging.info(f'Processing message of Type=[{item_type}]; Id=[{item_id}]')
@@ -104,12 +108,13 @@ class KafkaItemExporter:
     # utility functions to produce message to kafka
     def produce_message(self, item_type, data):
         return self.producer.send(item_type, value=data)
-    
+
     # utility functions to convert numeric data to string format
     def parse_data(self, item):
         data = convert_numeric_to_string(item)
         return json.dumps(data).encode('utf-8')
-              
+
+
 def group_by_item_type(items):
     result = collections.defaultdict(list)
     for item in items:
