@@ -40,4 +40,8 @@ class EthReceipt(object):
         self.l1_fee_scalar = None
         self.tx_from = None
         self.tx_to = None
+
+        # OP stack optional fields
+        self.deposit_nonce = None
+        self.deposit_receipt_version = None
         
