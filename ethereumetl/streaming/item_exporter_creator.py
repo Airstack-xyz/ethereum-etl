@@ -101,7 +101,7 @@ def create_item_exporter(output):
                                                         #  if we simply rely on this tool since there are many tokens doesn't have proper standards
                                                         # will enrich all contracts and store in enriched_contracts kafka and then 
                                                         # using CH MVs will identify the token_type from transfers table
-            'receipt': blockchain + '_receipt'
+            'receipt': blockchain + '_receipts'
         })
 
     else:
