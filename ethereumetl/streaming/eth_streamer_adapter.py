@@ -36,11 +36,11 @@ class EthStreamerAdapter:
         self.batch_size = batch_size
         self.max_workers = max_workers
         self.entity_types = entity_types
-        
+
         self.clickhouse_db = None
         if os.environ.get('ENABLE_DEDUPLICATION') != None:
             self.clickhouse_db = Clickhouse()
-        
+
         self.item_id_calculator = EthItemIdCalculator()
         self.item_timestamp_calculator = EthItemTimestampCalculator()
 
@@ -77,7 +77,7 @@ class EthStreamerAdapter:
         geth_traces = []
         if self._should_export(EntityType.GETH_TRACE):
             geth_traces = self._export_geth_traces(start_block, end_block)
-            
+
         # Export contracts
         contracts = []
         if self._should_export(EntityType.CONTRACT):
@@ -106,7 +106,7 @@ class EthStreamerAdapter:
             if EntityType.TOKEN in self.entity_types else []
 
         logging.info('Exporting with ' + type(self.item_exporter).__name__)
-        
+
         if os.environ.get('ENABLE_DEDUPLICATION') != None and os.environ.get('OVERRIDE_CHECK_ALL_IN_CACHE') == None:
             # TODO: improve this code
             enriched_logs = deduplicate_records(enriched_logs, 'block_timestamp', self.clickhouse_db)
@@ -126,7 +126,8 @@ class EthStreamerAdapter:
             sort_by(enriched_contracts, ('block_number',)) + \
             sort_by(enriched_tokens, ('block_number',)) + \
             sort_by(enriched_transactions, ('block_number', 'transaction_index')) + \
-            sort_by(enriched_blocks, 'number')
+            sort_by(enriched_blocks, 'number') + \
+            sort_by(receipts, 'block_number')
 
         #self.calculate_item_timestamps(all_items)
 
@@ -189,7 +190,7 @@ class EthStreamerAdapter:
         job.run()
         traces = exporter.get_items('trace')
         return traces
-    
+
     def _export_geth_traces(self, start_block, end_block):
         exporter = InMemoryItemExporter(item_types=['geth_trace'])
         export_job = ExportGethTracesJob(
@@ -201,7 +202,7 @@ class EthStreamerAdapter:
             item_exporter=exporter
         )
         export_job.run()
-        
+
         extract_exporter = InMemoryItemExporter(item_types=['geth_trace'])
         export_traces = exporter.get_items('geth_trace')
         extract_job = ExtractGethTracesJob(
@@ -253,7 +254,7 @@ class EthStreamerAdapter:
 
         if entity_type == EntityType.TOKEN_TRANSFER:
             return EntityType.TOKEN_TRANSFER in self.entity_types
-        
+
         if entity_type == EntityType.GETH_TRACE:
             return EntityType.GETH_TRACE in self.entity_types or self._should_export(EntityType.CONTRACT)
 
