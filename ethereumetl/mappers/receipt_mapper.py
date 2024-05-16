@@ -55,7 +55,7 @@ class EthReceiptMapper(object):
         receipt.l1_gas_price = hex_to_dec(json_dict.get('l1GasPrice'))
         receipt.l1_fee_scalar = to_float_or_none(json_dict.get('l1FeeScalar'))
 
-        receipt.deposit_nonce = json_dict.get('depositNonce', None)
+        receipt.deposit_nonce = hex_to_dec(json_dict.get('depositNonce', None))
         receipt.deposit_receipt_version = hex_to_dec(json_dict.get('depositReceiptVersion', None))
 
         tx_from = json_dict.get('from')
