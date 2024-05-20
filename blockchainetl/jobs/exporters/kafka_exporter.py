@@ -56,6 +56,8 @@ class KafkaItemExporter:
         for future in futures:
             try:
                 future.get(timeout=10)
+            except AttributeError as e:
+                logging.warning(f'Future AttributeError, skipping... {e}')
             except Exception as e:
                 logging.error(f'Failed to send message: {e}')
                 raise e
