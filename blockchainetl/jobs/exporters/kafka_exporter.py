@@ -10,6 +10,7 @@ from blockchainetl.jobs.exporters.converters.composite_item_converter import Com
 from ethereumetl.deduplication.redis import RedisConnector
 from ethereumetl.utils import convert_numeric_to_string
 
+
 class KafkaItemExporter:
 
     def __init__(self, item_type_to_topic_mapping, converters=()):
@@ -26,9 +27,9 @@ class KafkaItemExporter:
             sasl_plain_password=os.getenv('KAFKA_SCRAM_PASSWORD'),
             client_id=socket.gethostname(),
             compression_type=os.environ.get('KAFKA_COMPRESSION', 'lz4'),
-            request_timeout_ms= 60000,
-            max_block_ms= 120000,
-            buffer_memory= 100000000,
+            request_timeout_ms=60000,
+            max_block_ms=120000,
+            buffer_memory=100000000,
             retries=5,
             batch_size=32768,
             linger_ms=1)
@@ -55,9 +56,13 @@ class KafkaItemExporter:
         futures = [f for f in futures if f is not None]  # filter out None values
 
         # wait for all messages to be sent
-        for future in futures:
+        for item_topic, item_id, future in futures:
             try:
-                future.get(timeout=10)
+                res = future.get(timeout=10)
+                if res:
+                    self.mark_processed(item_topic, item_id)
+                else:
+                    logging.error('Empty response received')
             except Exception as e:
                 logging.error(f'Failed to send message: {e}')
                 raise e
@@ -66,22 +71,20 @@ class KafkaItemExporter:
         item_type = item.get('type')
         item_id = item.get('id')
 
-        if ((item_id is None) or (item_type is None) or (item_type not in self.item_type_to_topic_mapping)):
+        if (item_id is None) or (item_type is None) or (item_type not in self.item_type_to_topic_mapping):
             logging.warning('Topic for item type "{}" is not configured.'.format(item_type))
             return
 
-        item_type = self.item_type_to_topic_mapping[item_type]
+        item_topic = self.item_type_to_topic_mapping[item_type]
         data = self.parse_data(item)
 
         if self.enable_deduplication:
-            if not self.already_processed(item_type, item_id):
-                # logging.info(f'Processing message of Type=[{item_type}]; Id=[{item_id}]')
-                output = self.produce_message(item_type, data)
-                self.mark_processed(item_type, item_id)
-                return output
+            if not self.already_processed(item_topic, item_id):
+                logging.info(f'Processing message of Type=[{item_type}]; Id=[{item_id}]')
+                return item_topic, item_id, self.produce_message(item_topic, data)
             logging.info(f'Message was already processed skipping...  Type=[{item_type}]; Id=[{item_id}]')
         else:
-            return self.produce_message(item_type, data)
+            return item_topic, item_id, self.produce_message(item_topic, data)
 
     def convert_items(self, items):
         for item in items:
@@ -112,6 +115,7 @@ class KafkaItemExporter:
     def parse_data(self, item):
         data = convert_numeric_to_string(item)
         return json.dumps(data).encode('utf-8')
+
 
 def group_by_item_type(items):
     result = collections.defaultdict(list)
