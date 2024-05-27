@@ -49,23 +49,7 @@ class KafkaItemExporter:
         pass
 
     def export_items(self, items):
-        futures = []
-        for item in items:
-            futures.append(self.export_item(item))
-
-        futures = [f for f in futures if f is not None]  # filter out None values
-
-        # wait for all messages to be sent
-        for item_topic, item_id, future in futures:
-            try:
-                res = future.get(timeout=10)
-                if res:
-                    self.mark_processed(item_topic, item_id)
-                else:
-                    logging.error('Empty response received')
-            except Exception as e:
-                logging.error(f'Failed to send message: {e}')
-                raise e
+        return True
 
     def export_item(self, item):
         item_type = item.get('type')
