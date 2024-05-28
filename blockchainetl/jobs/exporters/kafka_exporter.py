@@ -32,7 +32,9 @@ class KafkaItemExporter:
             buffer_memory=100000000,
             retries=5,
             batch_size=32768,
-            linger_ms=1)
+            linger_ms=5,
+            acks='all'
+        )
 
         # use redis for deduplication of live messages  
         self.redis = None
