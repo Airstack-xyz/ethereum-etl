@@ -39,7 +39,7 @@ class BatchHTTPProvider(HTTPProvider):
             **self.get_request_kwargs()
         )
         response = self.decode_rpc_response(raw_response)
-        self.logger.debug("Getting response HTTP. URI: %s, "
+        self.logger.info("Getting response HTTP. URI: %s, "
                           "Request: %s, Response: %s",
                           self.endpoint_uri, text, response)
         return response
