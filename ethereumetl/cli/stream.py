@@ -48,7 +48,7 @@ from prometheus_client import start_http_server
 @click.option('-E', '--end-block', default=None, show_default=True, type=int, help='End block')
 @click.option('-e', '--entity-types', default=','.join(EntityType.ALL_FOR_INFURA), show_default=True, type=str,
               help='The list of entity types to export.')
-@click.option('--period-seconds', default=10, show_default=True, type=int, help='How many seconds to sleep between syncs')
+@click.option('--period-seconds', default=0, show_default=True, type=int, help='How many seconds to sleep between syncs')
 @click.option('-b', '--batch-size', default=10, show_default=True, type=int, help='How many blocks to batch in single request')
 @click.option('-B', '--block-batch-size', default=1, show_default=True, type=int, help='How many blocks to batch in single sync round')
 @click.option('-w', '--max-workers', default=5, show_default=True, type=int, help='The number of workers')
@@ -57,7 +57,7 @@ from prometheus_client import start_http_server
 @click.option('--mode', default='normal', show_default=True, type=str, help='mode to run the streamer ie. normal / correction')
 @click.option('--blocks-to-reprocess', default=None, show_default=True, type=str, help='specify the blocks to reprocess in comma (,) separated format')
 def stream(last_synced_block_file, lag, output, start_block, end_block, entity_types, max_workers,
-           period_seconds=10, batch_size=2, block_batch_size=10, log_file=None, pid_file=None, mode = None, blocks_to_reprocess = None):
+           period_seconds=0, batch_size=2, block_batch_size=10, log_file=None, pid_file=None, mode = None, blocks_to_reprocess = None):
     """Streams all data types to console or Google Pub/Sub."""
     configure_logging(log_file)
     configure_signals()
