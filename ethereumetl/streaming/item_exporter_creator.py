@@ -30,7 +30,7 @@ def create_item_exporters(outputs):
         split_outputs = [output.strip() for output in outputs.split(',')] if outputs else ['console']
     else:
         split_outputs = [outputs]
-
+    
     item_exporters = [create_item_exporter(output) for output in split_outputs]
     return MultiItemExporter(item_exporters)
 
@@ -89,7 +89,7 @@ def create_item_exporter(output):
     elif item_exporter_type == ItemExporterType.KAFKA:
         from blockchainetl.jobs.exporters.kafka_exporter import KafkaItemExporter
         blockchain = os.environ['BLOCKCHAIN']
-        item_exporter = KafkaItemExporter( item_type_to_topic_mapping={
+        item_exporter = KafkaItemExporter(item_type_to_topic_mapping={
             'block': blockchain + '_blocks',
             'transaction': blockchain + '_transactions',
             'log': blockchain + '_logs',

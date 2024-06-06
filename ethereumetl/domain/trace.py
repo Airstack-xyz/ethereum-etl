@@ -23,6 +23,12 @@
 
 class EthTrace(object):
     def __init__(self):
+        # NOTE: "before_evm_transfers" and "before_evm_transfers" are only applicable to Arbitrum-based traces
+        # "before_evm_transfers" - An array representing EVM transfers that occurred before the execution of the transaction
+        # "after_evm_transfers" - An array representing EVM transfers that occurred after the execution of the transaction
+        # Reference: https://www.quicknode.com/docs/arbitrum/debug_traceBlockByHash
+        self.before_evm_transfers = None
+        self.after_evm_transfers = None
         self.block_number = None
         self.transaction_hash = None
         self.transaction_index = None

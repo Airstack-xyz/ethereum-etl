@@ -1,3 +1,4 @@
+from ethereumetl.enumeration.entity_type import EntityType
 
 TOKEN_TYPE_ERC20 = 'ERC20'
 TOKEN_TYPE_ERC721 = 'ERC721'
@@ -42,4 +43,48 @@ BURN_ADDRESSES = [
 RUN_MODE_CORRECTION = 'correction'
 RUN_MODE_NORMAL= 'normal'
 
+# variables for deduplication
+REDIS_PREFIX = 'etl'
 METRICS_PORT = '9000'
+CLICKHOUSE_FALLBACK_DAYS = '1'
+CLICKHOUSE_QUERY_CHUNK_SIZE = 1500
+
+REQUIRED_ENVS = [
+    # envs for kafka integration
+    'BLOCKCHAIN',
+    'PROVIDER_URI',
+    'KAFKA_BROKER_URI',
+    
+    # envs for deduplication support
+    'REDIS_HOST',
+    'REDIS_PORT',
+    'REDIS_DB',
+    'REDIS_MESSAGE_TTL',
+    'CLICKHOUSE_HOST',
+    'CLICKHOUSE_PORT',
+    'CLICKHOUSE_USERNAME',
+    'CLICKHOUSE_PASSWORD',
+    'CLICKHOUSE_DATABASE'
+]
+
+ENTITY_TO_TABLE_MAP = {
+    EntityType.BLOCK: 'blocks',
+    EntityType.TRANSACTION: 'transactions',
+    EntityType.LOG: 'logs',
+    EntityType.TOKEN_TRANSFER: 'token_transfers',
+    EntityType.TRACE: 'traces',
+    EntityType.GETH_TRACE: 'traces',
+    EntityType.CONTRACT: 'contracts',
+    EntityType.TOKEN: 'enriched_contracts',
+}
+
+ENTITY_TO_TABLE_TS_COLUMNS_MAP = {
+    EntityType.BLOCK: 'timestamp',
+    EntityType.TOKEN: 'block_timestamp',
+    EntityType.TRANSACTION: 'block_timestamp',
+    EntityType.LOG: 'block_timestamp',
+    EntityType.TOKEN_TRANSFER: 'block_timestamp',
+    EntityType.TRACE: 'block_timestamp',
+    EntityType.GETH_TRACE: 'block_timestamp',
+    EntityType.CONTRACT: 'block_timestamp',
+}

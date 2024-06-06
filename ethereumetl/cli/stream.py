@@ -32,8 +32,10 @@ from ethereumetl.streaming.item_exporter_creator import create_item_exporters
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
 from ethereumetl.constants import constants
 
+from prometheus_client import start_http_server
+
 @click.command(context_settings=dict(help_option_names=['-h', '--help']))
-@click.option('-l', '--last-synced-block-file', default='last_synced_block.txt', show_default=True, type=str, help='')
+@click.option('-l', '--last-synced-block-file', required=True, type=str, help='Stores last-synced-block-number and is used to continue sync in-case of restarts. If both "--last-synced-block-file" and "--start-block" are provided then block-number in "--last-synced-block-file" takes precedence')
 @click.option('--lag', default=0, show_default=True, type=int, help='The number of blocks to lag behind the network.')
 @click.option('-o', '--output', type=str,
               help='Either Google PubSub topic path e.g. projects/your-project/topics/crypto_ethereum; '
@@ -42,7 +44,7 @@ from ethereumetl.constants import constants
                    'or kafka, output name and connection host:port e.g. kafka/127.0.0.1:9092 '
                    'or Kinesis, e.g. kinesis://your-data-stream-name'
                    'If not specified will print to console')
-@click.option('-s', '--start-block', default=None, show_default=True, type=int, help='Start block')
+@click.option('-s', '--start-block', required=True, type=int, help='Start block')
 @click.option('-E', '--end-block', default=None, show_default=True, type=int, help='End block')
 @click.option('-e', '--entity-types', default=','.join(EntityType.ALL_FOR_INFURA), show_default=True, type=str,
               help='The list of entity types to export.')
@@ -63,16 +65,9 @@ def stream(last_synced_block_file, lag, output, start_block, end_block, entity_t
 
     from ethereumetl.streaming.eth_streamer_adapter import EthStreamerAdapter
     from blockchainetl.streaming.streamer import Streamer
-
-    if os.environ['BLOCKCHAIN'] == None:
-        raise ValueError('BLOCKCHAIN env is missing')
     
+    check_required_envs()
     provider_uri = os.environ['PROVIDER_URI']
-    if provider_uri == None:
-        raise ValueError('PROVIDER_URI env is missing')
-    
-    if os.environ['KAFKA_BROKER_URI'] == None:
-        raise ValueError('KAFKA_BROKER_URI env is missing')
 
     if mode == constants.RUN_MODE_CORRECTION:
         blocks_to_reprocess = [int(block) for block in blocks_to_reprocess.split(',')]
@@ -105,9 +100,15 @@ def stream(last_synced_block_file, lag, output, start_block, end_block, entity_t
     streamer.stream()
 
 
+def check_required_envs():
+    for env in constants.REQUIRED_ENVS:
+        if os.environ[env] == None:
+            raise ValueError(f'{env} env is missing')
+
+
 def parse_entity_types(entity_types):
     entity_types = [c.strip() for c in entity_types.split(',')]
-
+    
     # validate passed types
     for entity_type in entity_types:
         if entity_type not in EntityType.ALL_FOR_STREAMING:

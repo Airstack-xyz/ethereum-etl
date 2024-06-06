@@ -1,7 +1,9 @@
 import logging
+import os
 
 from blockchainetl.jobs.exporters.console_item_exporter import ConsoleItemExporter
 from blockchainetl.jobs.exporters.in_memory_item_exporter import InMemoryItemExporter
+from ethereumetl.deduplication.clickhouse import Clickhouse
 from ethereumetl.enumeration.entity_type import EntityType
 from ethereumetl.jobs.export_blocks_job import ExportBlocksJob
 from ethereumetl.jobs.export_receipts_job import ExportReceiptsJob
@@ -18,6 +20,7 @@ from ethereumetl.streaming.eth_item_timestamp_calculator import EthItemTimestamp
 from ethereumetl.thread_local_proxy import ThreadLocalProxy
 from ethereumetl.web3_utils import build_web3
 from ethereumetl.providers.auto import get_provider_from_uri
+from ethereumetl.deduplication.deduplicate import deduplicate_records
 
 
 class EthStreamerAdapter:
@@ -33,6 +36,11 @@ class EthStreamerAdapter:
         self.batch_size = batch_size
         self.max_workers = max_workers
         self.entity_types = entity_types
+        
+        self.clickhouse_db = None
+        if os.environ.get('ENABLE_DEDUPLICATION') != None:
+            self.clickhouse_db = Clickhouse()
+        
         self.item_id_calculator = EthItemIdCalculator()
         self.item_timestamp_calculator = EthItemTimestampCalculator()
 
@@ -80,36 +88,46 @@ class EthStreamerAdapter:
         if self._should_export(EntityType.TOKEN):
             tokens = self._extract_tokens(contracts)
 
-        enriched_blocks = blocks \
+        enriched_blocks = self.calculate_item_ids(blocks) \
             if EntityType.BLOCK in self.entity_types else []
-        enriched_transactions = enrich_transactions(transactions, receipts) \
+        enriched_transactions = self.calculate_item_ids(enrich_transactions(transactions, receipts)) \
             if EntityType.TRANSACTION in self.entity_types else []
-        enriched_logs = enrich_logs(blocks, logs) \
+        enriched_logs = self.calculate_item_ids(enrich_logs(blocks, logs)) \
             if EntityType.LOG in self.entity_types else []
-        enriched_token_transfers = enrich_token_transfers(blocks, token_transfers) \
+        enriched_token_transfers = self.calculate_item_ids(enrich_token_transfers(blocks, token_transfers)) \
             if EntityType.TOKEN_TRANSFER in self.entity_types else []
-        enriched_traces = enrich_traces(blocks, traces) \
+        enriched_traces = self.calculate_item_ids(enrich_traces(blocks, traces)) \
             if EntityType.TRACE in self.entity_types else []
-        enriched_geth_traces = enrich_geth_traces(blocks, geth_traces) \
+        enriched_geth_traces = self.calculate_item_ids(enrich_geth_traces(blocks, geth_traces)) \
             if EntityType.GETH_TRACE in self.entity_types else []
-        enriched_contracts = enrich_contracts(blocks, contracts) \
+        enriched_contracts = self.calculate_item_ids(enrich_contracts(blocks, contracts)) \
             if EntityType.CONTRACT in self.entity_types else []
-        enriched_tokens = enrich_tokens(blocks, tokens) \
+        enriched_tokens = self.calculate_item_ids(enrich_tokens(blocks, tokens)) \
             if EntityType.TOKEN in self.entity_types else []
 
         logging.info('Exporting with ' + type(self.item_exporter).__name__)
+        
+        if os.environ.get('ENABLE_DEDUPLICATION') != None and os.environ.get('OVERRIDE_CHECK_ALL_IN_CACHE') == None:
+            # TODO: improve this code
+            enriched_logs = deduplicate_records(enriched_logs, 'block_timestamp', self.clickhouse_db)
+            enriched_token_transfers = deduplicate_records(enriched_token_transfers, 'block_timestamp', self.clickhouse_db)
+            enriched_traces = deduplicate_records(enriched_traces, 'block_timestamp', self.clickhouse_db)
+            enriched_geth_traces = deduplicate_records(enriched_geth_traces, 'block_timestamp', self.clickhouse_db)
+            enriched_contracts = deduplicate_records(enriched_contracts, 'block_timestamp', self.clickhouse_db)
+            enriched_tokens = deduplicate_records(enriched_tokens, 'block_timestamp', self.clickhouse_db)
+            enriched_transactions = deduplicate_records(enriched_transactions, 'block_timestamp', self.clickhouse_db)
+            enriched_blocks = deduplicate_records(enriched_blocks, 'timestamp', self.clickhouse_db)
 
         all_items = \
-            sort_by(enriched_blocks, 'number') + \
-            sort_by(enriched_transactions, ('block_number', 'transaction_index')) + \
             sort_by(enriched_logs, ('block_number', 'log_index')) + \
             sort_by(enriched_token_transfers, ('block_number', 'log_index')) + \
             sort_by(enriched_traces, ('block_number', 'trace_index')) + \
             sort_by(enriched_geth_traces, ('block_number', 'trace_index')) + \
             sort_by(enriched_contracts, ('block_number',)) + \
-            sort_by(enriched_tokens, ('block_number',))
+            sort_by(enriched_tokens, ('block_number',)) + \
+            sort_by(enriched_transactions, ('block_number', 'transaction_index')) + \
+            sort_by(enriched_blocks, 'number')
 
-        self.calculate_item_ids(all_items)
         #self.calculate_item_timestamps(all_items)
 
         self.item_exporter.export_items(all_items)
@@ -253,6 +271,7 @@ class EthStreamerAdapter:
     def calculate_item_ids(self, items):
         for item in items:
             item['id'] = self.item_id_calculator.calculate(item)
+        return items
 
     def calculate_item_timestamps(self, items):
         for item in items:

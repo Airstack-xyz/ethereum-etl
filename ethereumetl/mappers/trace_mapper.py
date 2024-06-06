@@ -30,6 +30,8 @@ class EthTraceMapper(object):
     def json_dict_to_trace(self, json_dict):
         trace = EthTrace()
 
+        trace.before_evm_transfers = json_dict.get('beforeEVMTransfers')
+        trace.after_evm_transfers = json_dict.get('afterEVMTransfers')
         trace.block_number = json_dict.get('blockNumber')
         trace.transaction_hash = json_dict.get('transactionHash')
         trace.transaction_index = json_dict.get('transactionPosition')
@@ -52,7 +54,7 @@ class EthTraceMapper(object):
         trace.trace_type = trace_type
 
         # common fields in call/create
-        if trace_type in ('call', 'create'):
+        if trace_type in ('call', 'create', 'create2'):
             trace.from_address = to_normalized_address(action.get('from'))
             trace.value = hex_to_dec(action.get('value'))
             trace.gas = hex_to_dec(action.get('gas'))
@@ -65,6 +67,10 @@ class EthTraceMapper(object):
             trace.input = action.get('input')
             trace.output = result.get('output')
         elif trace_type == 'create':
+            trace.to_address = result.get('address')
+            trace.input = action.get('init')
+            trace.output = result.get('code')
+        elif trace_type == 'create2':
             trace.to_address = result.get('address')
             trace.input = action.get('init')
             trace.output = result.get('code')
@@ -126,6 +132,10 @@ class EthTraceMapper(object):
 
     def _iterate_transaction_trace(self, block_number, tx_index, tx_trace, trace_address=[]):
         trace = EthTrace()
+        
+        trace.before_evm_transfers = tx_trace.get('beforeEVMTransfers')
+        trace.after_evm_transfers = tx_trace.get('afterEVMTransfers')
+        
         trace.transaction_hash = tx_trace.get('tx_hash')
         trace.status = tx_trace.get('status')
         trace.block_number = block_number
@@ -174,6 +184,8 @@ class EthTraceMapper(object):
     def trace_to_dict(self, trace, trace_type):
         return {
             'type': trace_type,
+            'before_evm_transfers': trace.before_evm_transfers,
+            'after_evm_transfers': trace.after_evm_transfers,
             'block_number': trace.block_number,
             'transaction_hash': trace.transaction_hash,
             'transaction_index': trace.transaction_index,
