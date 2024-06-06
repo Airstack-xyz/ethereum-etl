@@ -104,6 +104,7 @@ class Streamer:
                     time.sleep(self.period_seconds)
 
     def _do_stream(self):
+        logging.info('End Block={} LastSyncedBlock={}'.format(self.end_block, self.last_synced_block))
         while (self.end_block is None or self.last_synced_block < self.end_block):
             synced_blocks = 0
             try:

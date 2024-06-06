@@ -27,6 +27,17 @@ import warnings
 from ethereumetl.misc.retriable_value_error import RetriableValueError
 from typing import List, Union
 
+def convert_numeric_to_string(obj):
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            obj[key] = convert_numeric_to_string(value)
+    elif isinstance(obj, list):
+        for i in range(len(obj)):
+            obj[i] = convert_numeric_to_string(obj[i])
+    elif isinstance(obj, (int, float)) and not isinstance(obj, bool):
+        obj = str(obj)
+    return obj
+
 def hex_to_dec(hex_string):
     if hex_string is None:
         return None
