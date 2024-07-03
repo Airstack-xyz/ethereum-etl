@@ -59,7 +59,7 @@ async def filter_records(items, min_ts_epoch, max_ts_epoch, db):
         'max_block_timestamp': max_ts
     }
     query = '''
-    SELECT id FROM {table:Identifier} WHERE id IN {ids:Array(String)} and {timestamp_key:Identifier} >= {min_block_timestamp:String} and {timestamp_key:Identifier} <= {max_block_timestamp:String}
+    SELECT id FROM {table:Identifier} WHERE id IN {ids:Array(String)} and toDate({timestamp_key:Identifier}) >= {min_block_timestamp:String} and toDate({timestamp_key:Identifier}) <= {max_block_timestamp:String}
     '''
 
     chunk_size = int(os.environ.get('CLICKHOUSE_QUERY_CHUNK_SIZE', constants.CLICKHOUSE_QUERY_CHUNK_SIZE))
